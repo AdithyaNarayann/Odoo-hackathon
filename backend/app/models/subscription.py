@@ -4,6 +4,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -15,6 +16,11 @@ from app.core.database import Base
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
+    __table_args__ = (
+        Index("ix_subscriptions_status_plan_id", "status", "plan_id"),
+        Index("ix_subscriptions_status_is_paused", "status", "is_paused"),
+        Index("ix_subscriptions_customer_id_status", "customer_id", "status"),
+    )
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     number = Column(String(50), unique=True, nullable=False, index=True)

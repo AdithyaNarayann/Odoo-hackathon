@@ -3,6 +3,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -17,6 +18,10 @@ class Invoice(Base):
     __tablename__ = "invoices"
     __table_args__ = (
         UniqueConstraint("subscription_id", "period_start", name="uq_invoice_subscription_period"),
+        Index("ix_invoices_status_due_date", "status", "due_date"),
+        Index("ix_invoices_status_invoice_date", "status", "invoice_date"),
+        Index("ix_invoices_customer_id_status", "customer_id", "status"),
+        Index("ix_invoices_status_balance", "status", "balance"),
     )
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -68,6 +73,9 @@ class Invoice(Base):
 
 class InvoiceLine(Base):
     __tablename__ = "invoice_lines"
+    __table_args__ = (
+        Index("ix_invoice_lines_invoice_product", "invoice_id", "product_id"),
+    )
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     invoice_id = Column(Integer, ForeignKey("invoices.id", ondelete="CASCADE"), nullable=False, index=True)
