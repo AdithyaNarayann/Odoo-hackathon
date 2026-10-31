@@ -17,3 +17,6 @@
 | DEC-013 | Billing | Advance billing month-end arithmetic uses `relativedelta` relative to the subscription's original `start_date` | Prevents calendar month-end day truncation drift (e.g., Jan 31 -> Feb 28 -> Mar 31) across billing cycles |
 | DEC-014 | Pricing | Plan recurring fee lines resolve taxes against active `scope='all'` tax rules (or 0 rate if none found) | Base subscription plan charges do not have a product ID/category, so generic tax scope applies |
 | DEC-015 | Pricing | Proportional line discount rounding remainder allocated strictly to the last eligible line | Guarantees sum of invoice line discounts matches total discount exactly with zero paise discrepancy |
+| DEC-016 | Payments | Single-statement conditional atomic `UPDATE` on invoice balance before inserting payment | Guarantees zero race conditions and eliminates concurrent overpayment without table-level locking |
+| DEC-017 | Reports | MRR calculation groups by `billing_period` in SQL with exact half-up monthly normalization in integer paise | Eliminates N+1 queries across thousands of active contracts while maintaining database portability |
+| DEC-018 | Search | Global search limits items to 5 per entity type and strictly enforces customer role tenant scoping | Delivers <30ms search latency across 35,000+ entities while guaranteeing multi-tenant security |

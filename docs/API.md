@@ -322,3 +322,91 @@ Allowed Roles: Admin and Staff (Full Management).
     }
   }
   ```
+
+
+---
+
+## 14. Payments (`/api/payments`)
+
+### Endpoints
+
+| Method | Endpoint | Allowed Roles | Description |
+|---|---|---|---|
+| `POST` | `/api/payments` | Admin, Staff | Record a payment on a confirmed invoice with atomic balance reduction and concurrency protection. Transitions invoice to `paid` when balance reaches 0. |
+| `GET` | `/api/payments` | Admin, Staff, Customer | List payments with filters (`invoice_id`, `customer_id`, `method`, `from_date`, `to_date`), sorting, and pagination. Customers strictly see only payments for their own invoices. |
+| `GET` | `/api/payments/{id}` | Admin, Staff, Customer | Get single payment details. Customers get 404 for payments on unowned invoices. |
+
+### `POST /api/payments` Request Body
+```json
+{
+  "invoice_id": 142,
+  "method": "upi",
+  "amount": 50000,
+  "payment_date": "2026-10-31",
+  "note": "Settlement payment via Google Pay"
+}
+```
+
+---
+
+## 15. Reports & Analytics (`/api/reports`)
+
+### Endpoints
+
+| Method | Endpoint | Allowed Roles | Description |
+|---|---|---|---|
+| `GET` | `/api/reports/summary` | Admin, Staff | Point-in-time financial summary: active subscriptions count, normalized MRR in integer paise, revenue collected, invoiced total, outstanding/overdue balances and counts, expiring subscriptions, status breakdowns, and previous period comparisons. |
+| `GET` | `/api/reports/revenue-by-month` | Admin, Staff | Invoiced revenue (confirmed & paid) per month across the last `months` calendar months (default 8), split into Subscription (plan & base products) and Add-on lines. |
+
+### `GET /api/reports/summary` Query Parameters
+- `from`: Start date YYYY-MM-DD (default: 1st of current month)
+- `to`: End date YYYY-MM-DD (default: today)
+- `plan_id`: Optional plan ID filter
+- `customer_id`: Optional customer ID filter
+
+---
+
+## 16. Global Search (`/api/search`)
+
+### `GET /api/search`
+- **Allowed Roles**: Authenticated (`admin`, `staff`, `customer`)
+- **Query Parameters**:
+  - `q`: Search keyword (string)
+- **Description**: Returns top 5 customers, subscriptions, and invoices matching the search query. Scoped strictly by role: customers only see their own customer record, their non-draft subscriptions, and their non-draft invoices.
+- **Response Shape**:
+  ```json
+  {
+    "customers": [
+      {
+        "id": 12,
+        "name": "Arjun Sharma",
+        "company_name": "Tata Consultancy Services",
+        "email": "contact12@tcs.in",
+        "phone": "+919876543210"
+      }
+    ],
+    "subscriptions": [
+      {
+        "id": 104,
+        "number": "BL-00104",
+        "status": "active",
+        "customer_id": 12,
+        "customer_name": "Arjun Sharma",
+        "plan_name": "Growth Monthly",
+        "recurring_subtotal": 134900
+      }
+    ],
+    "invoices": [
+      {
+        "id": 512,
+        "number": "INV-2026-00512",
+        "status": "confirmed",
+        "customer_id": 12,
+        "customer_name": "Arjun Sharma",
+        "total": 159182,
+        "balance": 159182,
+        "due_date": "2026-11-15"
+      }
+    ]
+  }
+  ```

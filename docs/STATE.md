@@ -79,6 +79,41 @@
   * Overdue indicators: dynamically calculated `is_overdue` and `days_overdue`.
   * Strict customer portal isolation: customers can only view their own non-draft invoices and subscriptions (returns 404 for unowned/draft items).
 
+### Milestone 9: Payments & Atomic Concurrency Control
+- Payments model with method (`cash`, `card`, `upi`, `bank_transfer`, `cheque`), integer paise amount, and payment date validation (cannot be in the future).
+- Single-statement atomic conditional `UPDATE` on invoice balance before inserting the payment record. If the update affects 0 rows, rolls back and raises 409 Conflict. Guarantees zero race conditions or concurrent overpayment without table-level locking.
+- Transitions invoice status to `paid` atomically when balance reaches 0.
+- Customer invoice detail `/api/invoices/{id}` includes nested payment history.
+- `/api/payments` list endpoint with filters, sorting, and customer tenant scoping.
+
+### Milestone 10: Financial & Business Analytics Reports
+- `GET /api/reports/summary` using SQL aggregates only:
+  * Active subscriptions count and normalized MRR (daily x 365/12, weekly x 52/12, monthly x 1, yearly / 12) calculated in integer paise.
+  * Revenue collected, invoiced total, outstanding/overdue balances and counts.
+  * Point-in-time point aggregates and exact previous-period comparisons.
+  * Status breakdowns for subscriptions, invoices, and payments by method.
+  * Short in-process memory cache cleared on any mutation.
+- `GET /api/reports/revenue-by-month`:
+  * Evaluates confirmed and paid revenue across historical calendar months.
+  * Accurately splits revenue into subscription base charges and add-on products (`product.type == 'add_on'`).
+
+### Milestone 11: Global Multi-Tenant Search
+- `GET /api/search?q=` returns top 5 customers, subscriptions, and invoices.
+- Strict role scoping: customers only see their own customer record, non-draft subscriptions, and non-draft invoices.
+- Staff and admin search across full system with case-insensitive partial matching.
+
+### Milestone 12: High-Performance Database Seeder
+- Command `python -m app.seed 5000` seeds 5,000 subscriptions, 30,000 invoices, 27,038 payments, 300 Indian enterprise customers, 12 products, and dev logins in **6.66 seconds** (well within 90-second SLA).
+- Strict adherence to business rules: `balance == total - amount_paid`, paid invoices have `balance == 0`, no duplicate `(subscription_id, period_start)`.
+- Pre-configured dev credentials documented in `docs/DEV_ACCOUNTS.md`.
+
+### Milestone 13: Database Indexing & Benchmark Verification
+- Composite and single-column indexes on critical filter, sort, join, and aggregate columns. Verified with `EXPLAIN QUERY PLAN`.
+- Benchmark on 5,000 subscriptions and 30,000 invoices:
+  * All 10 core endpoints achieve **p95 < 150 ms** across 20 iterations each (target < 500 ms, hard limit < 2,000 ms).
+  * Full advance billing run over 150 active subscriptions completes in **~10.8 seconds** with 0 errors.
+- Documented in `docs/PERFORMANCE.md`.
+
 ## How to Run
 ```bash
 # Backend setup
@@ -92,6 +127,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 alembic upgrade head
+python -m app.seed 5000
 uvicorn app.main:app --reload
 ```
 
@@ -99,7 +135,7 @@ uvicorn app.main:app --reload
 ```bash
 pytest backend/tests -v
 ```
-Currently: **37 passing tests**, covering complete role matrix, pricing mathematics, state machines, billing engine, and scheduler.
+Currently: **51 passing tests**, covering complete role matrix, pricing mathematics, state machines, billing engine, payment concurrency, report aggregates, search scoping, and performance SLA benchmarks.
 
 ## What is Next
-- Part 3: Payments integration, frontend application (Kanban board, subscriptions, invoicing, customer portal).
+- Part 4: Frontend application (Kanban board, subscriptions management, invoicing, customer portal).

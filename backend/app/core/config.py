@@ -2,6 +2,9 @@ import os
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_BACKEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_DEFAULT_DB_FILE = os.path.join(_BACKEND_DIR, "brightloop.db").replace("\\", "/")
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -19,7 +22,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8 hours
     RESET_TOKEN_EXPIRE_MINUTES: int = 30  # 30 minutes
 
-    DATABASE_URL: str = "sqlite:///./brightloop.db"
+    DATABASE_URL: str = f"sqlite:///{_DEFAULT_DB_FILE}"
     FRONTEND_URL: str = "http://localhost:3000"
 
     # Company Details for Invoices & Config

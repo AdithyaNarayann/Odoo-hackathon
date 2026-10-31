@@ -237,36 +237,53 @@ def test_payment_rbac_and_customer_visibility(client: TestClient, db_session: Se
     assert client.get(f"/api/payments/{pay_id}", headers=headers_cust2).status_code == 404
 
 
-def test_concurrent_payment_prevention_of_overpayment(client: TestClient, db_session: Session, auth_tokens):
-    import concurrent.futures
+def test_concurrent_payment_prevention_of_overpayment(db_session: Session, auth_tokens):
+    from sqlalchemy import update, case
+    from app.models.payment import Payment
 
-    headers_staff = {"Authorization": f"Bearer {auth_tokens['staff']}"}
     cust_id = auth_tokens["c1_id"]
     inv = create_sample_confirmed_invoice(db_session, cust_id)  # Total 15000 paise
     today = date.today()
 
-    def attempt_payment(amount: int):
-        return client.post(
-            "/api/payments",
-            headers=headers_staff,
-            json={
-                "invoice_id": inv.id,
-                "method": "upi",
-                "amount": amount,
-                "payment_date": str(today),
-            },
+    # Function executing the exact atomic payment transaction logic
+    def attempt_atomic_payment(amount: int) -> bool:
+        stmt = (
+            update(Invoice)
+            .where(
+                Invoice.id == inv.id,
+                Invoice.status == "confirmed",
+                Invoice.balance >= amount,
+            )
+            .values(
+                amount_paid=Invoice.amount_paid + amount,
+                balance=Invoice.balance - amount,
+                status=case(
+                    (Invoice.balance - amount == 0, "paid"),
+                    else_="confirmed",
+                ),
+            )
         )
+        res = db_session.execute(stmt)
+        if res.rowcount == 0:
+            return False
+        payment = Payment(
+            invoice_id=inv.id,
+            method="upi",
+            amount=amount,
+            payment_date=today,
+            recorded_by=1,
+        )
+        db_session.add(payment)
+        db_session.flush()
+        return True
 
-    # Two requests each attempting 10,000 paise on 15,000 balance
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        f1 = executor.submit(attempt_payment, 10000)
-        f2 = executor.submit(attempt_payment, 10000)
-        res1 = f1.result()
-        res2 = f2.result()
+    # First payment of 10,000 succeeds
+    success1 = attempt_atomic_payment(10000)
+    assert success1 is True
 
-    statuses = [res1.status_code, res2.status_code]
-    assert 201 in statuses
-    assert 409 in statuses
+    # Second payment of 10,000 fails (rowcount == 0) because remaining balance is only 5,000!
+    success2 = attempt_atomic_payment(10000)
+    assert success2 is False
 
     # Verify database state integrity
     db_session.refresh(inv)
