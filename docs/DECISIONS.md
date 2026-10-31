@@ -14,3 +14,6 @@
 | DEC-010 | Catalog | Discount rule status dynamically calculated on request using business calendar date and usage counts | Avoids cron/daemon synchronization lag and keeps rule statuses strictly accurate in real time |
 | DEC-011 | Catalog | Deactivated discount rules compute status as "expired" | Prevents applying inactive discounts while preserving audit trails |
 | DEC-012 | Auth | All outstanding reset tokens for user marked used upon successful password reset | Prevents token replay and closes open reset windows immediately |
+| DEC-013 | Billing | Advance billing month-end arithmetic uses `relativedelta` relative to the subscription's original `start_date` | Prevents calendar month-end day truncation drift (e.g., Jan 31 -> Feb 28 -> Mar 31) across billing cycles |
+| DEC-014 | Pricing | Plan recurring fee lines resolve taxes against active `scope='all'` tax rules (or 0 rate if none found) | Base subscription plan charges do not have a product ID/category, so generic tax scope applies |
+| DEC-015 | Pricing | Proportional line discount rounding remainder allocated strictly to the last eligible line | Guarantees sum of invoice line discounts matches total discount exactly with zero paise discrepancy |

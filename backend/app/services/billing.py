@@ -150,6 +150,13 @@ def run_billing_engine(
                         # Generate invoice number
                         inv_number = get_next_invoice_number(db, p_start.year)
                         cust = sub.customer
+                        if not cust:
+                            errors.append({
+                                "subscription": sub.number,
+                                "period_start": str(p_start),
+                                "error": f"Subscription {sub.number} has no linked customer record",
+                            })
+                            break
                         due_date = p_start + timedelta(days=get_payment_terms_days(sub.payment_terms))
 
                         invoice = Invoice(

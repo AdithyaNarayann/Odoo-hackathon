@@ -3,7 +3,7 @@
 ## What is Done
 - Repository initialized with `.gitignore` and `docs/AGENT_RULES.md`
 - Working rules and conventions documented
-- Decisions logged in `docs/DECISIONS.md` (DEC-001 through DEC-012)
+- Decisions logged in `docs/DECISIONS.md` (DEC-001 through DEC-015)
 - API specification documented in `docs/API.md`
 
 ### Milestone 1: Core Scaffolding & Database
@@ -11,9 +11,9 @@
 - Configuration with `pydantic-settings` (`backend/app/core/config.py`) and committed `.env.example`
 - SQLAlchemy 2.0 database engine with SQLite WAL mode & 5000ms busy_timeout (`backend/app/core/database.py`)
 - Standardized error handlers (`AppException`, `StarletteHTTPException`, `RequestValidationError` returning `{detail, code, fields?}`)
-- Core models: `User`, `PasswordResetToken`, `LoginAttempt`, `Customer`, `Product`, `ProductVariant`, `Plan`, `TaxRule`, `DiscountRule`, `QuotationTemplate`, `QuotationTemplateLine`
-- Alembic migrations configured and verified from clean database
-- Pytest configuration with isolated test client and in-memory database
+- Core models: `User`, `PasswordResetToken`, `LoginAttempt`, `Customer`, `Product`, `ProductVariant`, `Plan`, `TaxRule`, `DiscountRule`, `QuotationTemplate`, `QuotationTemplateLine`, `Subscription`, `SubscriptionLine`, `SubscriptionEvent`, `Invoice`, `InvoiceLine`, `SequenceCounter`
+- Alembic migrations configured and verified from clean database through latest migration `d5610eaa994f`
+- Pytest configuration with isolated test client and transactional database fixtures
 
 ### Milestone 2: Authentication & Identity
 - Endpoints: `/api/auth/signup`, `/api/auth/login`, `/api/auth/me`, `/api/auth/change-password`, `/api/auth/forgot-password`, `/api/auth/reset-password`
@@ -39,20 +39,45 @@
 - Discount Rules (`/api/discounts`): fixed paise / percentage basis points, min amounts/quantities, start/end dates, usage limits, dynamic computed statuses (`active`, `scheduled`, `expired`, `exhausted`). Admin writes, staff reads.
 - Quotation Templates (`/api/quotation-templates`): managed by both Admin and Staff, linking plan and multiple product/variant lines with line unit prices in paise.
 
-### Milestone 5: Verification & Quality Assurance
-- Exhaustive test suite (19 test cases) passing across all rule matrices:
-  * Password rule matrix (length, upper, lower, special, compound)
-  * Duplicate email case-insensitivity
-  * Signup linking to existing customer
-  * Reset token single-use & expiry
-  * Login rate throttle
-  * Complete route-by-route role permission matrix
-  * Customer portal isolation (404 for unowned entities)
-  * Catalog validation & plan dates
-  * Hierarchical tax resolution
-  * Variant pricing with 560 INR example
-  * Discount status computations
-- End-to-end verification script (`scripts/verify_app.py`) verified live against FastAPI application
+### Milestone 6: Subscriptions Lifecycle & State Machine
+- Atomic sequence generation: `BL-00001` padded numbering via transactional counter.
+- Subscription models & relationships: `customer`, `plan`, `lines`, `subscription_events` history log.
+- Contract locking: header and lines locked after `draft` / `quotation` stages; returns 409 Conflict.
+- Add-on line flexibility: lines with product type `add_on` can be added and toggled on/off while contract is `active`. Changes take effect on next invoice without proration.
+- Create from quotation template endpoint: `POST /api/subscriptions/create-from-template`.
+- State machine transitions with descriptive 409 messages on invalid transitions.
+- Pause & Resume: checks `plan.pausable`. Paused subscriptions excluded from billing; resuming resets `next_billing_date` to today if past due.
+- Renewal: extends `expiry_date` by $N$ billing periods (1 to 36). Enforces `plan.renewable`.
+- Kanban board endpoint: `GET /api/subscriptions/board` returns card counts and top 20 recent cards per status.
+
+### Milestone 7: Pure Pricing Pipeline & In-Process Scheduler
+- Pure pricing pipeline (`backend/app/services/pricing.py`):
+  * Builds plan fee line (if `plan.price > 0`) and enabled product lines.
+  * Evaluates discount rules (date validity, thresholds, product scope, usage limit).
+  * Enforces no stacking: picks discount with largest saving (ties broken by lowest ID).
+  * Proportional line discount allocation with single-paise rounding remainder absorbed by last line.
+  * Line tax resolution using effective tax rate hierarchy snapshot.
+  * Invoice line totals equal invoice grand totals exactly.
+- Atomic discount usage: conditional update (`UPDATE ... WHERE used_count < usage_limit`); retries calculation without discount if exhausted.
+- Unpaid invoice cancellation releases discount usage count.
+- In-process APScheduler daily maintenance: activates confirmed subscriptions when `start_date` reached, auto-closes expired active subscriptions with `plan.auto_close`, and triggers advance billing.
+- Manual trigger endpoint for admin: `POST /api/system/run-daily`.
+
+### Milestone 8: Advance Billing Engine & Invoices
+- Advance billing engine (`POST /api/billing/run`):
+  * Safely calculates advance billing periods using `relativedelta` relative to original `start_date` to prevent month-end drift.
+  * Database constraint `UNIQUE(subscription_id, period_start)` guarantees idempotency and prevents duplicate invoices.
+  * Processes subscriptions in batches of 200; catches up to 60 missed periods per run.
+  * Excludes paused subscriptions; skips already-billed periods cleanly.
+- Invoice lifecycle:
+  * Number sequence `INV-YYYY-XXXXX`.
+  * Confirm draft invoice to posted status (`/api/invoices/{id}/confirm`).
+  * Cancel invoice with automatic discount usage release (`/api/invoices/{id}/cancel`).
+  * Send invoice email notification with payment reminder when overdue (`/api/invoices/{id}/send`).
+  * Printable JSON view with full company details (`/api/invoices/{id}/print`).
+  * Bulk operations (`confirm`, `send`, `cancel`) for up to 500 invoices (`/api/invoices/bulk-action`).
+  * Overdue indicators: dynamically calculated `is_overdue` and `days_overdue`.
+  * Strict customer portal isolation: customers can only view their own non-draft invoices and subscriptions (returns 404 for unowned/draft items).
 
 ## How to Run
 ```bash
@@ -74,6 +99,7 @@ uvicorn app.main:app --reload
 ```bash
 pytest backend/tests -v
 ```
+Currently: **37 passing tests**, covering complete role matrix, pricing mathematics, state machines, billing engine, and scheduler.
 
 ## What is Next
-- Part 2: Subscriptions lifecycle, recurring invoicing, and payment processing.
+- Part 3: Payments integration, frontend application (Kanban board, subscriptions, invoicing, customer portal).

@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models.catalog import Plan, Product
+from app.models.customer import Customer
 from app.models.subscription import Subscription
 from app.services.scheduler import run_daily_maintenance
 
@@ -10,6 +11,12 @@ from app.services.scheduler import run_daily_maintenance
 def test_daily_maintenance_activation_and_autoclose(db_session: Session):
     today = date.today()
 
+    customer = Customer(
+        name="Scheduler Test Customer",
+        company_name="Sched Corp",
+        email="sched@example.com",
+        is_active=True,
+    )
     # Plan with auto_close
     plan_auto = Plan(
         name="Auto Close Plan",
@@ -29,13 +36,13 @@ def test_daily_maintenance_activation_and_autoclose(db_session: Session):
         is_active=True,
     )
     product = Product(name="Item A", type="software", sales_price=5000, is_active=True)
-    db_session.add_all([plan_auto, plan_manual, product])
+    db_session.add_all([customer, plan_auto, plan_manual, product])
     db_session.commit()
 
     # Subscription 1: Confirmed with start_date <= today -> should activate
     sub_to_activate = Subscription(
         number="BL-ACT01",
-        customer_id=1,
+        customer_id=customer.id,
         plan_id=plan_auto.id,
         start_date=today - timedelta(days=1),
         expiry_date=today + timedelta(days=30),
@@ -48,7 +55,7 @@ def test_daily_maintenance_activation_and_autoclose(db_session: Session):
     # Subscription 2: Active with expiry_date < today and plan.auto_close -> should close
     sub_to_autoclose = Subscription(
         number="BL-CLS01",
-        customer_id=1,
+        customer_id=customer.id,
         plan_id=plan_auto.id,
         start_date=today - timedelta(days=60),
         expiry_date=today - timedelta(days=1),
@@ -61,7 +68,7 @@ def test_daily_maintenance_activation_and_autoclose(db_session: Session):
     # Subscription 3: Active with expiry_date < today but plan.auto_close == False -> should remain active
     sub_keep_active = Subscription(
         number="BL-STAY01",
-        customer_id=1,
+        customer_id=customer.id,
         plan_id=plan_manual.id,
         start_date=today - timedelta(days=60),
         expiry_date=today - timedelta(days=1),
