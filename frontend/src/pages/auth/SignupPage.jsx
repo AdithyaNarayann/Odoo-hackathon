@@ -1,12 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, CheckCircle2, Circle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, getRoleHome } from '../../context/AuthContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
 export default function SignupPage() {
-  const { signup } = useAuth();
+  const { signup, isAuthenticated, role, loading } = useAuth();
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
@@ -14,6 +15,12 @@ export default function SignupPage() {
   const [emailError, setEmailError] = useState('');
   const [generalError, setGeneralError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate(getRoleHome(role), { replace: true });
+    }
+  }, [isAuthenticated, loading, role, navigate]);
 
   // Live checklist evaluation
   const checklist = useMemo(() => {

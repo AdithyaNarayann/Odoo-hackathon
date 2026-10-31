@@ -1,3 +1,5 @@
+let isRedirectingToLogin = false;
+
 // Custom event dispatcher for global toast and auth notifications
 export const apiEvents = new EventTarget();
 
@@ -50,9 +52,17 @@ export async function apiRequest(endpoint, options = {}) {
     localStorage.removeItem('brightloop_token');
     localStorage.removeItem('brightloop_user');
     notifyUnauthorized();
-    // Redirect to login if not already there
-    if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
-      window.location.href = '/login';
+    // Redirect to login once if not already on an auth page
+    const pathname = window.location.pathname;
+    const isAuthPage = pathname.startsWith('/login') ||
+                       pathname.startsWith('/signup') ||
+                       pathname.startsWith('/forgot-password') ||
+                       pathname.startsWith('/reset-password');
+    if (!isAuthPage && !isRedirectingToLogin) {
+      isRedirectingToLogin = true;
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 50);
     }
     const errData = await response.json().catch(() => ({}));
     throw {

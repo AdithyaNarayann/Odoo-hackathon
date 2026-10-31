@@ -38,8 +38,8 @@ export default function Sidebar({ isOpen, onClose }) {
   ];
 
   const customerNavItems = [
-    { label: 'My Subscriptions', path: '/portal/subscriptions', icon: Layers },
-    { label: 'My Invoices', path: '/portal/invoices', icon: FileText },
+    { label: 'My Subscriptions', path: '/subscriptions', icon: Layers },
+    { label: 'My Invoices', path: '/invoices', icon: FileText },
     { label: 'Profile', path: '/portal/profile', icon: UserCheck },
   ];
 

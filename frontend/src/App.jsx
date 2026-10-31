@@ -2,7 +2,8 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
-import { useAuth } from './context/AuthContext';
+import { useAuth, getRoleHome } from './context/AuthContext';
+import NotFoundPage from './pages/error/NotFoundPage';
 
 // Eager load core authentication pages
 import LoginPage from './pages/auth/LoginPage';
@@ -10,7 +11,7 @@ import SignupPage from './pages/auth/SignupPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 
-// Route-level code-splitting with dynamic import() for heavy sub-pages (Recharts, Tables, Forms)
+// Route-level code-splitting with dynamic import() for heavy sub-pages
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const CustomersListPage = lazy(() => import('./pages/customers/CustomersListPage'));
 const CustomerDetailPage = lazy(() => import('./pages/customers/CustomerDetailPage'));
@@ -33,7 +34,7 @@ const SettingsPage = lazy(() => import('./pages/settings/SettingsPage'));
 
 function PageFallback() {
   return (
-    <div className="space-y-6 animate-pulse py-2">
+    <div className="space-y-6 animate-pulse py-2 font-inter">
       <div className="h-10 w-64 bg-[#E5E0D5] border-2 border-ink rounded-[4px] shadow-neo-sm" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
@@ -46,15 +47,35 @@ function PageFallback() {
 }
 
 function IndexRedirect() {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-8 font-inter">
+        <div className="bg-cream-light border-2 border-ink rounded-[4px] p-8 shadow-neo max-w-sm w-full text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-[4px] border-2 border-ink bg-brand-orange text-white shadow-neo font-anton text-2xl mb-1">
+            BL
+          </div>
+          <div className="font-anton text-2xl uppercase tracking-wider text-ink">Brightloop</div>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <div className="w-5 h-5 border-2 border-ink border-t-brand-orange rounded-full animate-spin" />
+            <p className="font-bold text-ink text-sm">Loading Brightloop...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  return role === 'customer' ? (
-    <Navigate to="/portal/subscriptions" replace />
-  ) : (
-    <Navigate to="/dashboard" replace />
-  );
+  return <Navigate to={getRoleHome(role)} replace />;
+}
+
+function SubscriptionsPageRouter() {
+  const { role } = useAuth();
+  if (role === 'customer') {
+    return <CustomerSubscriptionsPage />;
+  }
+  return <SubscriptionsListPage />;
 }
 
 export default function App() {
@@ -69,59 +90,19 @@ export default function App() {
       {/* Root redirect */}
       <Route path="/" element={<IndexRedirect />} />
 
-      {/* Authenticated Staff/Admin App Routes */}
+      {/* Shared Authenticated Routes (Admin, Staff, Customer) */}
       <Route
         element={
-          <ProtectedRoute allowedRoles={['admin', 'staff']}>
+          <ProtectedRoute allowedRoles={['admin', 'staff', 'customer']}>
             <AppLayout />
           </ProtectedRoute>
         }
       >
         <Route
-          path="/dashboard"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <DashboardPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/customers"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <CustomersListPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/customers/:id"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <CustomerDetailPage />
-            </Suspense>
-          }
-        />
-        <Route
           path="/subscriptions"
           element={
             <Suspense fallback={<PageFallback />}>
-              <SubscriptionsListPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/subscriptions/new"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <SubscriptionFormPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/subscriptions/:id/edit"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <SubscriptionFormPage />
+              <SubscriptionsPageRouter />
             </Suspense>
           }
         />
@@ -130,38 +111,6 @@ export default function App() {
           element={
             <Suspense fallback={<PageFallback />}>
               <SubscriptionDetailPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/templates"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <TemplatesPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/products"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <ProductsPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/plans"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <PlansPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/billing"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <BillingRunPage />
             </Suspense>
           }
         />
@@ -189,48 +138,7 @@ export default function App() {
             </Suspense>
           }
         />
-        <Route
-          path="/payments"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <PaymentsListPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/discounts"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <DiscountsPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/reports"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <ReportsPage />
-            </Suspense>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <Suspense fallback={<PageFallback />}>
-              <SettingsPage />
-            </Suspense>
-          }
-        />
-      </Route>
-
-      {/* Customer Portal Routes */}
-      <Route
-        element={
-          <ProtectedRoute allowedRoles={['customer']}>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      >
+        {/* Customer Portal route aliases for backward compatibility */}
         <Route
           path="/portal/subscriptions"
           element={
@@ -273,8 +181,122 @@ export default function App() {
         />
       </Route>
 
-      {/* Catch-all */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Authenticated Staff & Admin Only Routes */}
+      <Route
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'staff']}>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          path="/dashboard"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <DashboardPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/customers"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <CustomersListPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/customers/:id"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <CustomerDetailPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/subscriptions/new"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <SubscriptionFormPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/subscriptions/:id/edit"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <SubscriptionFormPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/templates"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <TemplatesPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <ProductsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/plans"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <PlansPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <BillingRunPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/payments"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <PaymentsListPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/discounts"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <DiscountsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <ReportsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <SettingsPage />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Catch-all 404 Route */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

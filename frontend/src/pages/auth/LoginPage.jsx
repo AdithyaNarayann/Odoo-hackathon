@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, ShieldCheck } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, getRoleHome } from '../../context/AuthContext';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated, role, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // If already authenticated, redirect to target or role home
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      const from = location.state?.from?.pathname || getRoleHome(role);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, loading, role, navigate, location]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +32,8 @@ export default function LoginPage() {
     setErrorMsg('');
     setSubmitting(true);
     try {
-      await login(email, password);
+      const from = location.state?.from?.pathname || null;
+      await login(email, password, from);
     } catch (err) {
       setErrorMsg(err.detail || 'Invalid email or password.');
     } finally {
@@ -29,9 +41,9 @@ export default function LoginPage() {
     }
   };
 
-  const fillQuickAccount = (quickEmail) => {
+  const fillQuickAccount = (quickEmail, quickPassword) => {
     setEmail(quickEmail);
-    setPassword('BrightLoop2026!');
+    setPassword(quickPassword);
     setErrorMsg('');
   };
 
@@ -58,7 +70,7 @@ export default function LoginPage() {
               SIGN IN
             </h2>
             <p className="text-xs text-ink/70 mt-1 font-inter">
-              Enter your credentials to access your portal.
+              Enter your credentials to access your Brightloop workspace.
             </p>
           </div>
 
@@ -84,18 +96,8 @@ export default function LoginPage() {
             />
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-archivo font-extrabold uppercase tracking-wider text-ink">
-                  Password
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-[11px] font-bold text-brand-orange hover:underline"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
               <Input
+                label="Password"
                 type="password"
                 placeholder="••••••••••••"
                 value={password}
@@ -106,6 +108,14 @@ export default function LoginPage() {
                 icon={Lock}
                 required
               />
+              <div className="mt-1 text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-archivo font-extrabold uppercase text-ink/60 hover:text-ink hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             <Button
@@ -114,7 +124,7 @@ export default function LoginPage() {
               className="w-full justify-center mt-2"
               disabled={submitting}
             >
-              <span>{submitting ? 'Signing in...' : 'Sign In'}</span>
+              <span>{submitting ? 'Signing In...' : 'Sign In'}</span>
               <ArrowRight size={16} />
             </Button>
           </form>
@@ -128,21 +138,21 @@ export default function LoginPage() {
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => fillQuickAccount('admin@brightloop.io')}
+                onClick={() => fillQuickAccount('admin@brightloop.com', 'Admin@1234')}
                 className="px-2 py-1.5 bg-white border border-ink rounded-[4px] text-[10px] font-bold text-ink hover:bg-cream active:translate-y-0.5 transition-all"
               >
                 Admin
               </button>
               <button
                 type="button"
-                onClick={() => fillQuickAccount('staff@brightloop.io')}
+                onClick={() => fillQuickAccount('staff@brightloop.com', 'Staff@1234')}
                 className="px-2 py-1.5 bg-white border border-ink rounded-[4px] text-[10px] font-bold text-ink hover:bg-cream active:translate-y-0.5 transition-all"
               >
                 Staff
               </button>
               <button
                 type="button"
-                onClick={() => fillQuickAccount('customer@example.com')}
+                onClick={() => fillQuickAccount('customer@brightloop.com', 'Customer@1234')}
                 className="px-2 py-1.5 bg-white border border-ink rounded-[4px] text-[10px] font-bold text-ink hover:bg-cream active:translate-y-0.5 transition-all"
               >
                 Customer

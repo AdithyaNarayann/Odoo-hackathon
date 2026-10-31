@@ -5,6 +5,13 @@ import { useToast } from './ToastContext';
 
 const AuthContext = createContext(null);
 
+export function getRoleHome(role) {
+  if (role === 'customer') {
+    return '/subscriptions';
+  }
+  return '/dashboard';
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -52,7 +59,7 @@ export function AuthProvider({ children }) {
     return () => apiEvents.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email, password, from = null) => {
     try {
       const data = await api.post('/api/auth/login', { email, password });
       localStorage.setItem('brightloop_token', data.access_token);
@@ -61,11 +68,8 @@ export function AuthProvider({ children }) {
       setUser(data.user);
       success(`Welcome back, ${data.user.full_name}!`);
 
-      if (data.user.role === 'customer') {
-        navigate('/portal/subscriptions');
-      } else {
-        navigate('/dashboard');
-      }
+      const targetPath = from || getRoleHome(data.user.role);
+      navigate(targetPath, { replace: true });
       return data;
     } catch (err) {
       error(err.detail || 'Failed to log in. Please check your credentials.');
@@ -81,7 +85,8 @@ export function AuthProvider({ children }) {
       setToken(data.access_token);
       setUser(data.user);
       success('Account created successfully!');
-      navigate('/portal/subscriptions');
+      const targetPath = getRoleHome(data.user.role);
+      navigate(targetPath, { replace: true });
       return data;
     } catch (err) {
       throw err;
@@ -94,7 +99,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setToken(null);
     success('Logged out successfully.');
-    navigate('/login');
+    navigate('/login', { replace: true });
   }, [navigate, success]);
 
   const updateProfileState = useCallback((newUserData) => {
@@ -104,6 +109,23 @@ export function AuthProvider({ children }) {
       return updated;
     });
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cream flex flex-col items-center justify-center p-8 font-inter">
+        <div className="bg-cream-light border-2 border-ink rounded-[4px] p-8 shadow-neo max-w-sm w-full text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-[4px] border-2 border-ink bg-brand-orange text-white shadow-neo font-anton text-2xl mb-1">
+            BL
+          </div>
+          <div className="font-anton text-2xl uppercase tracking-wider text-ink">Brightloop</div>
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <div className="w-5 h-5 border-2 border-ink border-t-brand-orange rounded-full animate-spin" />
+            <p className="font-bold text-ink text-sm">Loading Brightloop...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider
