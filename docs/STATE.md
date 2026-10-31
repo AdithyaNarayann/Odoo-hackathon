@@ -27,6 +27,12 @@
   * Admin-only staff management (`/api/staff`: list, create, get, update, soft delete)
   * Staff and admin customer management (`/api/customers`: list with search & pagination, create, get, update, soft delete)
   * Customer portal (`/api/portal`: view & update own contact/billing details; strict 404 isolation for foreign customer records)
+- Milestone 4 Complete:
+  * Catalog Products & Variants (`/api/products`): effective variant pricing calculation, Brand = Odoo adds 560 INR (56000 paise) verified, duplicate variant constraint enforcement. Admin writes, staff reads.
+  * Subscription Plans (`/api/plans`): base recurring price in paise, billing periods, min quantity, date range validation (`available_to >= available_from`), and the 4 plan flags (`auto_close`, `closable`, `pausable`, `renewable`).
+  * Tax Rules & Resolution (`/api/taxes`): rates in basis points, scope hierarchy resolution (`product` beats `product_type` beats `all`), tax resolution endpoint `/api/taxes/resolve/{product_id}`.
+  * Discount Rules (`/api/discounts`): fixed paise / percentage basis points, min amounts/quantities, start/end dates, usage limits, dynamic computed statuses (`active`, `scheduled`, `expired`, `exhausted`).
+  * Quotation Templates (`/api/quotation-templates`): managed by both admin and staff, linking plan and multiple product/variant lines with line unit prices in paise.
 
 ## How to Run
 ```bash
@@ -50,5 +56,4 @@ pytest backend/tests -v
 ```
 
 ## What is Next
-- Milestone 4: Product catalog (products, variants, 560 INR add-on pricing), subscription plans, hierarchical tax rules, discount rules with computed statuses, quotation templates.
 - Milestone 5: Full test suite verification across all matrices, API documentation finalization, tagging `part-1-complete`.

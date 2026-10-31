@@ -13,7 +13,18 @@ from app.core.errors import (
     http_exception_handler,
     validation_exception_handler,
 )
-from app.routers import auth, config, customers, portal, staff
+from app.routers import (
+    auth,
+    config,
+    customers,
+    discounts,
+    plans,
+    portal,
+    products,
+    quotation_templates,
+    staff,
+    taxes,
+)
 from app.services.bootstrap import bootstrap_admin
 
 logger = logging.getLogger(__name__)
@@ -64,6 +75,11 @@ app.include_router(config.router)
 app.include_router(staff.router)
 app.include_router(customers.router)
 app.include_router(portal.router)
+app.include_router(products.router)
+app.include_router(plans.router)
+app.include_router(taxes.router)
+app.include_router(discounts.router)
+app.include_router(quotation_templates.router)
 
 
 @app.get("/api/health")
