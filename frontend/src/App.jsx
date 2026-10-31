@@ -7,6 +7,8 @@ import SignupPage from './pages/auth/SignupPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import CustomersListPage from './pages/customers/CustomersListPage';
+import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 import { useAuth } from './context/AuthContext';
 
 function IndexRedirect() {
@@ -55,8 +57,8 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/customers" element={<PagePlaceholder title="Customers" />} />
-        <Route path="/customers/:id" element={<PagePlaceholder title="Customer Details" />} />
+        <Route path="/customers" element={<CustomersListPage />} />
+        <Route path="/customers/:id" element={<CustomerDetailPage />} />
         <Route path="/subscriptions" element={<PagePlaceholder title="Subscriptions" />} />
         <Route path="/subscriptions/:id" element={<PagePlaceholder title="Subscription Details" />} />
         <Route path="/templates" element={<PagePlaceholder title="Quotation Templates" />} />
