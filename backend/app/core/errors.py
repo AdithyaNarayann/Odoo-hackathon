@@ -17,6 +17,16 @@ class AppException(HTTPException):
         self.fields = fields
 
 
+class BadRequestException(AppException):
+    def __init__(self, detail: str = "Bad request", code: str = "BAD_REQUEST", fields: Optional[List[Dict[str, Any]]] = None):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detail,
+            code=code,
+            fields=fields,
+        )
+
+
 class UnauthorizedException(AppException):
     def __init__(self, detail: str = "Not authenticated", code: str = "UNAUTHORIZED"):
         super().__init__(
@@ -61,7 +71,7 @@ class UnprocessableEntityException(AppException):
         fields: Optional[List[Dict[str, Any]]] = None,
     ):
         super().__init__(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=422,
             detail=detail,
             code=code,
             fields=fields,
@@ -103,7 +113,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         })
 
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=422,
         content={
             "detail": "Validation error",
             "code": "VALIDATION_ERROR",
