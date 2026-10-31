@@ -12,6 +12,7 @@ import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 import SubscriptionsListPage from './pages/subscriptions/SubscriptionsListPage';
 import SubscriptionFormPage from './pages/subscriptions/SubscriptionFormPage';
 import SubscriptionDetailPage from './pages/subscriptions/SubscriptionDetailPage';
+import BillingRunPage from './pages/billing/BillingRunPage';
 import ProductsPage from './pages/catalog/ProductsPage';
 import PlansPage from './pages/catalog/PlansPage';
 import TemplatesPage from './pages/catalog/TemplatesPage';
@@ -74,6 +75,7 @@ export default function App() {
         <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/plans" element={<PlansPage />} />
+        <Route path="/billing" element={<BillingRunPage />} />
         <Route path="/invoices" element={<PagePlaceholder title="Invoices" />} />
         <Route path="/payments" element={<PagePlaceholder title="Payments" />} />
         <Route path="/discounts" element={<DiscountsPage />} />
