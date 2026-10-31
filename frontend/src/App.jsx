@@ -13,6 +13,9 @@ import SubscriptionsListPage from './pages/subscriptions/SubscriptionsListPage';
 import SubscriptionFormPage from './pages/subscriptions/SubscriptionFormPage';
 import SubscriptionDetailPage from './pages/subscriptions/SubscriptionDetailPage';
 import BillingRunPage from './pages/billing/BillingRunPage';
+import InvoicesListPage from './pages/invoices/InvoicesListPage';
+import InvoiceDetailPage from './pages/invoices/InvoiceDetailPage';
+import InvoicePrintPage from './pages/invoices/InvoicePrintPage';
 import ProductsPage from './pages/catalog/ProductsPage';
 import PlansPage from './pages/catalog/PlansPage';
 import TemplatesPage from './pages/catalog/TemplatesPage';
@@ -76,7 +79,9 @@ export default function App() {
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/plans" element={<PlansPage />} />
         <Route path="/billing" element={<BillingRunPage />} />
-        <Route path="/invoices" element={<PagePlaceholder title="Invoices" />} />
+        <Route path="/invoices" element={<InvoicesListPage />} />
+        <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
+        <Route path="/invoices/:id/print" element={<InvoicePrintPage />} />
         <Route path="/payments" element={<PagePlaceholder title="Payments" />} />
         <Route path="/discounts" element={<DiscountsPage />} />
         <Route path="/reports" element={<PagePlaceholder title="Reports" />} />
@@ -92,7 +97,9 @@ export default function App() {
         }
       >
         <Route path="/portal/subscriptions" element={<PagePlaceholder title="My Subscriptions" />} />
-        <Route path="/portal/invoices" element={<PagePlaceholder title="My Invoices" />} />
+        <Route path="/portal/invoices" element={<InvoicesListPage />} />
+        <Route path="/portal/invoices/:id" element={<InvoiceDetailPage />} />
+        <Route path="/portal/invoices/:id/print" element={<InvoicePrintPage />} />
         <Route path="/portal/profile" element={<SettingsPage />} />
       </Route>
 
