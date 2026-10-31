@@ -217,6 +217,7 @@ def create_new_subscription(
 
 
 @router.post("/from-template", response_model=SubscriptionResponse, status_code=status.HTTP_201_CREATED, summary="Create subscription from template")
+@router.post("/create-from-template", response_model=SubscriptionResponse, status_code=status.HTTP_201_CREATED, summary="Create subscription from template (alias)")
 def create_from_template(
     payload: SubscriptionCreateFromTemplate,
     current_user: User = Depends(get_current_user),
