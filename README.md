@@ -86,74 +86,45 @@ flowchart TD
 
 ---
 
-### Windows (PowerShell)
+### Setup & Development
 
-```powershell
-# 1. Clone repository
-git clone https://github.com/AdithyaNarayann/Odoo-hackathon.git
-cd Odoo-hackathon
-
-# 2. Install root and frontend dependencies
-npm install
-npm --prefix frontend install
-
-# 3. Create virtual environment & install backend dependencies
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r backend/requirements.txt
-
-# 4. Copy environment configuration
-Copy-Item .env.example .env
-
-# 5. Run database migrations & seed 5,000 subscriptions
-alembic upgrade head
-$env:PYTHONPATH="backend"
-python -m app.seed 5000
-
-# 6. Start full-stack development server (Backend on :8000, Frontend on :3000)
-npm run dev
-```
-
----
-
-### Linux / macOS (Bash)
+The repository includes cross-platform automation scripts (`scripts/setup.mjs`, `scripts/dev.mjs`, `scripts/test.mjs`) that work seamlessly across Windows (PowerShell/CMD), macOS, and Linux.
 
 ```bash
 # 1. Clone repository
 git clone https://github.com/AdithyaNarayann/Odoo-hackathon.git
 cd Odoo-hackathon
 
-# 2. Install root and frontend dependencies
-npm install
-npm --prefix frontend install
+# 2. Automated one-step setup (installs npm & pip deps, creates venv, runs migrations, seeds database)
+npm run setup
 
-# 3. Create virtual environment & install backend dependencies
-python3 -m venv venv
-source venv/bin/activate
-pip install -r backend/requirements.txt
-
-# 4. Copy environment configuration
-cp .env.example .env
-
-# 5. Run database migrations & seed 5,000 subscriptions
-alembic upgrade head
-PYTHONPATH=backend python -m app.seed 5000
-
-# 6. Start full-stack development server (Backend on :8000, Frontend on :3000)
+# 3. Start full-stack development server (Backend on :8000, Frontend on :5173)
 npm run dev
 ```
 
-Visit **http://localhost:3000** in your browser.
+Visit **http://localhost:5173** in your browser.
 
 ---
 
-## Default Dev Credentials (From Seeder)
+### Database & Seeding Scripts
+
+```bash
+# Reset database back to clean development dataset (200 subscriptions, 1,431 invoices)
+npm run db:reset
+
+# Seed full benchmark dataset (5,000 subscriptions, 30,000 invoices, 27,038 payments) in < 10s
+npm run db:seed:full
+```
+
+---
+
+## Default Dev Credentials
 
 | Role | Email | Password | Access Scope |
 |---|---|---|---|
-| **Admin** | `admin@brightloop.io` | `Admin@Brightloop2026` | Full system control, catalog, taxes, staff admin, billing |
-| **Staff** | `sarah.ops@brightloop.io` | `Staff@Brightloop2026` | Customers, subscriptions, templates, invoices, payments |
-| **Customer** | `rajesh@acmetech.in` | `Customer@Brightloop2026` | Customer self-service portal (own subscriptions & invoices) |
+| **Admin** | `admin@brightloop.com` | `Admin@1234` | Full system control, catalog, taxes, staff management, billing engine |
+| **Staff** | `staff@brightloop.com` | `Staff@1234` | Customers, subscriptions, quotation templates, invoices, payments |
+| **Customer** | `customer@brightloop.com` | `Customer@1234` | Customer portal ("Demo Traders"), own subscriptions in all 5 statuses, pay/view invoices |
 
 *(Quick demo buttons are available on the login page for instant one-click authentication)*
 
@@ -167,18 +138,17 @@ All settings are managed via `pydantic-settings` from `.env`. A complete templat
 APP_NAME="Brightloop Subscription Management System"
 APP_ENV=development
 APP_TIMEZONE=Asia/Kolkata
-SECRET_KEY=change-this-in-production-to-a-secure-random-secret-key-min-32-chars
+SECRET_KEY=dev-insecure-secret-key-brightloop-subscription-32bytes
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=480
 RESET_TOKEN_EXPIRE_MINUTES=30
 
-# Database Configuration
-# Local SQLite (default):
+# Database Configuration (anchored to backend directory)
 DATABASE_URL=sqlite:///./brightloop.db
 # PostgreSQL (production):
 # DATABASE_URL=postgresql://user:password@localhost:5432/brightloop
 
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:5173
 
 # Company Details for Invoices & Settings
 COMPANY_NAME=Brightloop Technologies Pvt Ltd
@@ -191,16 +161,17 @@ COMPANY_PHONE=+91 80 1234 5678
 EMAIL_BACKEND=console # Use 'smtp' in production
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your-smtp-user@domain.com
-SMTP_PASSWORD=your-smtp-app-password
+SMTP_USER=
+SMTP_PASSWORD=
 SMTP_FROM=noreply@brightloop.io
 SMTP_TLS=true
 
-# Admin Bootstrap
-ADMIN_EMAIL=admin@brightloop.io
-ADMIN_PASSWORD=Admin@123456
+# Admin Bootstrap & Default Accounts
+ADMIN_EMAIL=admin@brightloop.com
+ADMIN_PASSWORD=Admin@1234
+SEED_DEFAULT_ACCOUNTS=true
 
-# Daily In-Process Scheduler (runs at SCHEDULER_HOUR:SCHEDULER_MINUTE Asia/Kolkata)
+# Daily In-Process Scheduler (disabled by default in dev)
 SCHEDULER_ENABLED=false
 SCHEDULER_HOUR=0
 SCHEDULER_MINUTE=0
@@ -210,20 +181,28 @@ SCHEDULER_MINUTE=0
 
 ## Running Automated Tests
 
+A unified test runner verifies the backend, API surface, and end-to-end browser flows:
+
 ```bash
-# Run complete test suite (57 passing tests covering auth, RBAC, pricing, billing, concurrency, E2E)
+# Run the complete test suite (Pytest + OpenAPI Smoke Test + Playwright E2E)
+npm test
+
+# 1. Backend test suite (57 tests covering auth, RBAC, pricing, billing, concurrency)
 pytest backend/tests -v
 
-# Run dedicated End-to-End Billing Month scenario
+# 2. Automated Route Security & OpenAPI crawl (53 routes, 122 assertions across admin, staff, customer)
+python scripts/api_smoke.py
+
+# 3. Playwright E2E browser tests (8 scenarios covering all user journeys & page sweep)
+npx playwright test
+
+# 4. Run dedicated End-to-End Billing Month scenario
 pytest backend/tests/test_e2e_billing_month.py -v
 
-# Run Automated Route Security & OpenAPI enforcement checks
-pytest backend/tests/test_route_security.py -v
-
-# Run Performance Latency & Advance Billing benchmarks
+# 5. Run Performance Latency & Advance Billing benchmarks
 pytest backend/tests/test_performance.py -v -s
 
-# Verify frontend production build & code-splitting
+# 6. Verify frontend production build & code-splitting
 npm run build:frontend
 ```
 

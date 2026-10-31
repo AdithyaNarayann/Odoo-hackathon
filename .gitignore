@@ -49,6 +49,8 @@ node_modules/
 .pytest_cache/
 .coverage
 htmlcov/
+test-results/
+playwright-report/
 
 # Editor / OS
 .DS_Store
