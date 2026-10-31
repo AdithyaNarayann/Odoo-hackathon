@@ -6,6 +6,7 @@ import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import DashboardPage from './pages/dashboard/DashboardPage';
 import { useAuth } from './context/AuthContext';
 
 function IndexRedirect() {
@@ -53,7 +54,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<PagePlaceholder title="Dashboard" />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/customers" element={<PagePlaceholder title="Customers" />} />
         <Route path="/customers/:id" element={<PagePlaceholder title="Customer Details" />} />
         <Route path="/subscriptions" element={<PagePlaceholder title="Subscriptions" />} />
