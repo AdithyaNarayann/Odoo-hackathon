@@ -9,6 +9,9 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import CustomersListPage from './pages/customers/CustomersListPage';
 import CustomerDetailPage from './pages/customers/CustomerDetailPage';
+import ProductsPage from './pages/catalog/ProductsPage';
+import PlansPage from './pages/catalog/PlansPage';
+import TemplatesPage from './pages/catalog/TemplatesPage';
 import { useAuth } from './context/AuthContext';
 
 function IndexRedirect() {
@@ -61,9 +64,9 @@ export default function App() {
         <Route path="/customers/:id" element={<CustomerDetailPage />} />
         <Route path="/subscriptions" element={<PagePlaceholder title="Subscriptions" />} />
         <Route path="/subscriptions/:id" element={<PagePlaceholder title="Subscription Details" />} />
-        <Route path="/templates" element={<PagePlaceholder title="Quotation Templates" />} />
-        <Route path="/products" element={<PagePlaceholder title="Products" />} />
-        <Route path="/plans" element={<PagePlaceholder title="Subscription Plans" />} />
+        <Route path="/templates" element={<TemplatesPage />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/plans" element={<PlansPage />} />
         <Route path="/invoices" element={<PagePlaceholder title="Invoices" />} />
         <Route path="/payments" element={<PagePlaceholder title="Payments" />} />
         <Route path="/discounts" element={<PagePlaceholder title="Discounts" />} />
