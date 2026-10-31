@@ -25,6 +25,7 @@ from app.routers import (
     portal,
     products,
     quotation_templates,
+    reports,
     staff,
     subscriptions,
     system,
@@ -94,6 +95,7 @@ app.include_router(subscriptions.router)
 app.include_router(billing.router)
 app.include_router(invoices.router)
 app.include_router(payments.router)
+app.include_router(reports.router)
 app.include_router(system.router)
 
 

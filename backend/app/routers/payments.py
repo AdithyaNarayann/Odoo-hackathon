@@ -22,6 +22,7 @@ from app.schemas.payment import (
     PaymentListResponse,
     PaymentResponse,
 )
+from app.routers.reports import clear_reports_cache
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
 
@@ -114,6 +115,7 @@ def record_payment(
     db.commit()
     db.refresh(payment)
     db.refresh(inv)
+    clear_reports_cache()
 
     return build_payment_response(payment, inv)
 
