@@ -1,0 +1,13 @@
+{
+  "name": "brightloop-subscription-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"backend,frontend\" -c \"blue.bold,green.bold\" \"cd backend && python -m uvicorn app.main:app --reload --port 8000\" \"cd frontend && npm run dev\"",
+    "dev:backend": "cd backend && python -m uvicorn app.main:app --reload --port 8000",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

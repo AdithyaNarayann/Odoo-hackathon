@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-cream: #F4EFE6;
+  --bg-card: #FFFFFF;
+  --ink: #1A1A1A;
+  --brand-orange: #FF5B26;
+  --brand-teal: #008080;
+  --brand-slate: #5C768D;
+  --brand-amber: #F59E0B;
+}
+
+body {
+  background-color: var(--bg-cream);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Custom Neo-Brutalist Classes */
+.neo-box {
+  border: 2px solid #1A1A1A;
+  box-shadow: 3px 3px 0px #1A1A1A;
+  border-radius: 4px;
+}
+
+.neo-box-sm {
+  border: 2px solid #1A1A1A;
+  box-shadow: 2px 2px 0px #1A1A1A;
+  border-radius: 4px;
+}
+
+.neo-box-lg {
+  border: 2px solid #1A1A1A;
+  box-shadow: 5px 5px 0px #1A1A1A;
+  border-radius: 6px;
+}
+
+.neo-btn {
+  border: 2px solid #1A1A1A;
+  box-shadow: 3px 3px 0px #1A1A1A;
+  border-radius: 4px;
+  font-weight: 700;
+  transition: all 0.1s ease-in-out;
+}
+
+.neo-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 4px 4px 0px #1A1A1A;
+}
+
+.neo-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px #1A1A1A;
+}
+
+.neo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 2px 2px 0px #1A1A1A;
+}
+
+/* Tabular figures for monetary values */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F4EFE6;
+  border-left: 1px solid #1A1A1A;
+}
+::-webkit-scrollbar-thumb {
+  background: #1A1A1A;
+  border-radius: 2px;
+}
