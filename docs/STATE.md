@@ -3,7 +3,7 @@
 ## What is Done
 - Repository initialized with `.gitignore` and `docs/AGENT_RULES.md`
 - Working rules and conventions documented
-- Decisions logged in `docs/DECISIONS.md` (DEC-001 through DEC-015)
+- Decisions logged in `docs/DECISIONS.md` (DEC-001 through DEC-018)
 - API specification documented in `docs/API.md`
 
 ### Milestone 1: Core Scaffolding & Database
@@ -114,28 +114,113 @@
   * Full advance billing run over 150 active subscriptions completes in **~10.8 seconds** with 0 errors.
 - Documented in `docs/PERFORMANCE.md`.
 
+### Milestone 14: Frontend Design System & Component Library (Part 4)
+- React 18, React Router 6, TanStack Query 5, Tailwind CSS 3, Recharts, Lucide React.
+- Faithfully reproduces the Neo-Brutalist retro aesthetic from component sheet (`media_1793430140979_b71a496a.jpg`):
+  * Cream background (`#F4EFE6`), lighter cream cards, near-black ink (`#1A1A1A`), orange primary (`#FF5B26`), dark teal secondary (`#008080`), slate blue (`#5C768D`), amber (`#F59E0B`), black (`#18181B`).
+  * 2px ink borders, hard offset shadows (`shadow-neo`, `shadow-neo-sm`, `shadow-neo-md`), Anton typography for large headlines, Archivo 800 uppercase for section titles, Inter for body, tabular numerals for currency.
+- 17 pure custom components built from scratch without external component libraries:
+  * `Button` (primary, secondary, success, danger, ghost, icon)
+  * `Input` (default, focused, error with icon, leading icon)
+  * `Select` (custom neo-brutalist dropdown with orange row highlight)
+  * `Toggle` (neo-brutalist switch)
+  * `Checkbox` (2px border, orange fill with checkmark)
+  * `Radio` (2px border, orange dot)
+  * `Tabs` (orange pill active tab with hard shadow)
+  * `Badge` (Draft grey, Quotation slate blue, Confirmed amber, Active teal, Closed black, Paused outlined grey, Paid teal, Overdue orange, Cancelled black)
+  * `StatCard` (with orange highlight variant from sheet)
+  * `DataTable` (sortable columns, selectable rows, action menu, skeleton loading)
+  * `Pagination` (prev/next, orange active square)
+  * `ProgressBar` (track with 2px border, orange/teal fill)
+  * `Toast` (success, info, warning, error with automatic 403 listener)
+  * `Modal` (confirmation dialog with icon and action buttons)
+  * `EmptyState` (document outline icon, bold title, call-to-action)
+  * `Tooltip` (dark neo-brutalist popover card with arrow)
+  * `Skeleton` (pulsating placeholder card)
+
+### Milestone 15: Auth, Guards & Responsive Navigation Shell
+- Complete authentication flow:
+  * `LoginPage` with credentials entry, password toggle, quick demo account shortcuts.
+  * `SignupPage` with live 5-point password and email checklist (`>8 chars`, uppercase, lowercase, special char, valid email format) and inline duplicate email error on 409.
+  * `ForgotPasswordPage` with generic success message.
+  * `ResetPasswordPage` with token validation and live password security policy rules.
+- Route guards (`ProtectedRoute`) enforcing authentication and role matrix (`admin`, `staff`, `customer`).
+- Fetch client wrapper automatically attaching JWT from `localStorage`, sending 401 unauthenticated requests to login, and emitting 403 forbidden toast events.
+- Shell layout (`AppLayout`, `Sidebar`, `Topbar`):
+  * Sidebar: brand header, orange pill active item, bottom block with geometric art and "BRIGHTLOOP SUBSCRIPTION SYSTEM V1.0". Role-scoped (customers only see My Subscriptions, My Invoices, Profile; staff/admin see all).
+  * Mobile responsive drawer with backdrop and hamburger trigger.
+  * Topbar: user avatar initials, full name, role badge, profile dropdown menu. Non-functional search box and notification bell omitted per prompt specification.
+
+### Milestone 16: Business Dashboard & Revenue Analytics
+- `DashboardPage` (`/dashboard`):
+  * Orange hero banner "SUBSCRIPTIONS THAT GROW" with geometric isometric art, tagline, and "+ New Subscription" quick-action link.
+  * 4 StatCards populated from `GET /api/reports/summary`: Active Subscriptions, Monthly Recurring Revenue (orange highlight variant with `formatPaiseCompact` e.g. `₹ 12.4L`), Revenue Collected (with trend indicator comparing previous period), Outstanding Invoices (with count and overdue amount).
+  * Recharts stacked bar chart for Revenue Overview (`GET /api/reports/revenue-by-month?months=N`): orange bars for Subscriptions, teal bars for Add-ons, responsive container, currency tooltips, and 6m/8m/12m period selector.
+  * Recent Subscriptions feed (5 latest subscriptions from `GET /api/subscriptions?page=1&page_size=5` with status badge, customer name, MRR, date, and "View All" link).
+
+### Milestone 17: Customers Management & Detailed Ledgers
+- `CustomersListPage` (`/customers`): search, server-side pagination, sorting, status filter, Add Customer modal, row action menu (View Details, Edit Profile, Deactivate/Reactivate).
+- `CustomerDetailPage` (`/customers/:id`):
+  * Header card with customer initials, active status badge, edit profile modal, and new subscription button.
+  * Top metrics row: Lifetime Value (LTV), Active Subscriptions, Total Invoiced, Outstanding Balance.
+  * Tabbed views:
+    - Overview: full contact details, billing address, GSTIN / Tax ID, account metadata.
+    - Subscriptions: customer's subscriptions table with status badges and recurring subtotals.
+    - Invoices: customer's billing invoices table with due dates, overdue badges, and balance due.
+
+### Milestone 18: Product Catalog, Plans & Quotation Templates
+- `ProductsPage` (`/products`):
+  * List with search, type filter, status filter, and pagination.
+  * Margin display: calculated profit margin and percentage with color indicators.
+  * Variants editor (e.g. Brand = Odoo +560) showing live effective price (sales price + variant extra).
+  * Role permissions: Admin can create, edit, deactivate; Staff gets read-only access.
+- `PlansPage` (`/plans`):
+  * List with billing cycle, base fee, minimum quantity, availability window, and status.
+  * 4 flag Toggles (`auto_close`, `closable`, `pausable`, `renewable`), each with an explanatory Tooltip detailing contract lifecycle policy.
+  * Admin write, staff read-only.
+- `TemplatesPage` (`/templates`):
+  * List with linked plan, validity days, and pre-configured items count.
+  * Line items editor: select product, select variant, set quantity, live line total calculation.
+  * Admin and staff can create and edit.
+
+### Milestone 19: Discounts, Tax Rates & Organization Settings
+- `DiscountsPage` (`/discounts`):
+  * List with status Badges (Active, Expired, Limit Reached, Inactive) and usage `ProgressBar` ("37 / 100 used").
+  * Modal form with `Radio` controls for discount type (percentage vs fixed) and application scope (entire subscription vs specific products).
+  * Multi-select product checkboxes, spend thresholds, minimum quantities, date ranges, and usage limits.
+  * Admin write, staff read-only.
+- `SettingsPage` (`/settings`):
+  * Tab 1 (Profile): user identity card and Change Password form with live 5-point password security checklist.
+  * Tab 2 (Taxes - Admin Only): tax rules table with rates in %, scope resolution hierarchy (Global all, By product type, By specific product), and create/edit/deactivate modal.
+  * Tab 3 (Staff - Admin Only): team members management table, invite/create staff modal, and active status toggle.
+
+### Milestone 20: Cross-Platform Single-Script Dev Server
+- Root `package.json` with `concurrently` executing backend (`python -m uvicorn app.main:app --app-dir backend --reload --port 8000`) and frontend (`npm --prefix frontend run dev`) concurrently.
+- Compatible with Windows, Linux, and macOS across PowerShell, CMD, and Bash.
+
 ## How to Run
 ```bash
-# Backend setup
-cd backend
-python -m venv venv
-# On Windows PowerShell:
-.\venv\Scripts\Activate.ps1
-# On Linux/macOS:
-source venv/bin/activate
+# 1. Install root, backend, and frontend dependencies
+npm install
+npm --prefix frontend install
+pip install -r backend/requirements.txt
 
-pip install -r requirements.txt
-cp .env.example .env
+# 2. Run backend database migrations and seed 5,000 subscriptions
 alembic upgrade head
 python -m app.seed 5000
-uvicorn app.main:app --reload
+
+# 3. Start full stack development server (backend on :8000, frontend on :3000)
+npm run dev
 ```
 
 ## Running Tests
 ```bash
+# Backend test suite (51 passing tests covering auth, catalog, state machine, billing, concurrency, reports)
 pytest backend/tests -v
+
+# Frontend production build verification
+npm run build:frontend
 ```
-Currently: **51 passing tests**, covering complete role matrix, pricing mathematics, state machines, billing engine, payment concurrency, report aggregates, search scoping, and performance SLA benchmarks.
 
 ## What is Next
-- Part 4: Frontend application (Kanban board, subscriptions management, invoicing, customer portal).
+- Part 5: Full subscriptions contract builder, Kanban drag-and-drop board, advance billing run trigger, invoice detail viewer with payment recorder, and search box / notification center.
