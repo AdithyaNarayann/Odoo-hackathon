@@ -13,7 +13,7 @@ from app.core.errors import (
     http_exception_handler,
     validation_exception_handler,
 )
-from app.routers import auth, config
+from app.routers import auth, config, customers, portal, staff
 from app.services.bootstrap import bootstrap_admin
 
 logger = logging.getLogger(__name__)
@@ -61,6 +61,9 @@ app.add_exception_handler(HTTPException, http_exception_handler)
 # Include Routers
 app.include_router(auth.router)
 app.include_router(config.router)
+app.include_router(staff.router)
+app.include_router(customers.router)
+app.include_router(portal.router)
 
 
 @app.get("/api/health")

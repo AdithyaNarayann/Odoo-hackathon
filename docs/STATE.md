@@ -22,6 +22,11 @@
   * Dual email service backends (console and smtp) with asynchronous background dispatch
   * Admin user bootstrap on startup
   * Company invoice config endpoint (`GET /api/config/company`)
+- Milestone 3 Complete:
+  * Role-based access control (RBAC) enforced with `require_roles` dependency across all routes (`admin`, `staff`, `customer`)
+  * Admin-only staff management (`/api/staff`: list, create, get, update, soft delete)
+  * Staff and admin customer management (`/api/customers`: list with search & pagination, create, get, update, soft delete)
+  * Customer portal (`/api/portal`: view & update own contact/billing details; strict 404 isolation for foreign customer records)
 
 ## How to Run
 ```bash
@@ -45,6 +50,5 @@ pytest backend/tests -v
 ```
 
 ## What is Next
-- Milestone 3: Roles & RBAC (`admin`, `staff`, `customer`), staff management endpoints, customer management and portal endpoints.
 - Milestone 4: Product catalog (products, variants, 560 INR add-on pricing), subscription plans, hierarchical tax rules, discount rules with computed statuses, quotation templates.
 - Milestone 5: Full test suite verification across all matrices, API documentation finalization, tagging `part-1-complete`.
