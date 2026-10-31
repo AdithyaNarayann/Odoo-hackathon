@@ -15,9 +15,11 @@ from app.core.errors import (
 )
 from app.routers import (
     auth,
+    billing,
     config,
     customers,
     discounts,
+    invoices,
     plans,
     portal,
     products,
@@ -88,6 +90,8 @@ app.include_router(taxes.router)
 app.include_router(discounts.router)
 app.include_router(quotation_templates.router)
 app.include_router(subscriptions.router)
+app.include_router(billing.router)
+app.include_router(invoices.router)
 app.include_router(system.router)
 
 
