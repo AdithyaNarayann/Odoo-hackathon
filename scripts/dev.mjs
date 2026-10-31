@@ -92,7 +92,7 @@ async function start() {
     {
       cwd: ROOT_DIR,
       env: pyEnv,
-      shell: isWin,
+      shell: false,
     }
   );
 

@@ -13,7 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { api } from '../../api/client';
-import { formatPaise } from '../../utils/format';
+import { formatPaise, formatDate } from '../../utils/format';
 import { useToast } from '../../context/ToastContext';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';

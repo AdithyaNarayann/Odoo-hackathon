@@ -10,10 +10,12 @@
     "db:seed": "node scripts/setup.mjs",
     "db:seed:full": "node scripts/setup.mjs --full",
     "test": "node scripts/test.mjs",
+    "test:e2e": "playwright test",
     "build": "npm --prefix frontend run build",
     "build:frontend": "npm --prefix frontend run build"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "concurrently": "^8.2.2"
   }
 }
