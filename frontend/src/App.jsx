@@ -39,19 +39,6 @@ function IndexRedirect() {
   );
 }
 
-function PagePlaceholder({ title }) {
-  return (
-    <div className="bg-cream-light border-2 border-ink rounded-[4px] p-8 shadow-neo">
-      <h1 className="font-anton text-2xl uppercase tracking-wide text-ink mb-2">
-        {title}
-      </h1>
-      <p className="text-xs text-ink/70 font-inter">
-        This view is being loaded.
-      </p>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <Routes>
