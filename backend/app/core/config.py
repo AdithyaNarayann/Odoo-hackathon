@@ -42,5 +42,10 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: Optional[str] = None
     ADMIN_PASSWORD: Optional[str] = None
 
+    # Scheduler Settings
+    SCHEDULER_ENABLED: bool = False  # Disabled by default in dev/test, enabled via env in prod
+    SCHEDULER_HOUR: int = 0
+    SCHEDULER_MINUTE: int = 0
+
 
 settings = Settings()

@@ -24,9 +24,11 @@ from app.routers import (
     quotation_templates,
     staff,
     subscriptions,
+    system,
     taxes,
 )
 from app.services.bootstrap import bootstrap_admin
+from app.services.scheduler import start_scheduler, stop_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +46,12 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
 
+    # Start in-process scheduler if enabled
+    start_scheduler()
+
     yield
     # Shutdown actions
+    stop_scheduler()
     logger.info("Shutting down %s", settings.APP_NAME)
 
 
@@ -82,6 +88,7 @@ app.include_router(taxes.router)
 app.include_router(discounts.router)
 app.include_router(quotation_templates.router)
 app.include_router(subscriptions.router)
+app.include_router(system.router)
 
 
 @app.get("/api/health")
