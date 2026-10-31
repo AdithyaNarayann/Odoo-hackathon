@@ -15,6 +15,7 @@ from app.models.customer import Customer
 from app.models.subscription import Subscription, SubscriptionEvent, SubscriptionLine
 from app.models.user import User
 from app.schemas.common import PaginatedResponse
+from app.schemas.invoice import InvoiceLinePreviewResponse, InvoicePreviewResponse
 from app.schemas.subscription import (
     RenewSubscriptionRequest,
     SubscriptionBoardColumn,
@@ -26,6 +27,8 @@ from app.schemas.subscription import (
     SubscriptionResponse,
     SubscriptionUpdate,
 )
+from app.services.billing_period import compute_period_bounds, get_billing_period_relativedelta, get_payment_terms_days
+from app.services.pricing import calculate_pricing
 from app.services.state_machine import (
     pause_subscription,
     resume_subscription,
@@ -494,3 +497,69 @@ def renew(
 
     updated = renew_subscription(sub=sub, periods=payload.periods, actor=current_user, db=db)
     return build_subscription_response(updated, db)
+
+
+@router.post("/{id}/invoice-preview", response_model=InvoicePreviewResponse, summary="Preview next invoice without saving")
+def preview_next_invoice(
+    id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    sub = (
+        db.query(Subscription)
+        .options(
+            joinedload(Subscription.customer),
+            joinedload(Subscription.plan),
+            joinedload(Subscription.lines).joinedload(SubscriptionLine.product),
+            joinedload(Subscription.lines).joinedload(SubscriptionLine.variant),
+        )
+        .filter(Subscription.id == id)
+        .first()
+    )
+    if not sub:
+        raise NotFoundException(detail="Subscription not found", code="SUBSCRIPTION_NOT_FOUND")
+
+    if current_user.role == "customer":
+        cust = db.query(Customer).filter(Customer.user_id == current_user.id).first()
+        if not cust or sub.customer_id != cust.id or sub.status == "draft":
+            raise NotFoundException(detail="Subscription not found", code="SUBSCRIPTION_NOT_FOUND")
+
+    period_start = sub.next_billing_date
+    delta = get_billing_period_relativedelta(sub.plan.billing_period, 1)
+    period_end = period_start + delta - timedelta(days=1)
+    invoice_date = period_start
+    due_date = invoice_date + timedelta(days=get_payment_terms_days(sub.payment_terms))
+
+    pricing = calculate_pricing(sub, today=invoice_date, db=db)
+
+    preview_lines = [
+        InvoiceLinePreviewResponse(
+            product_id=line.product_id,
+            description=line.description,
+            quantity=line.quantity,
+            unit_price=line.unit_price,
+            amount=line.amount,
+            discount_amount=line.discount_amount,
+            tax_name=line.tax_name,
+            tax_rate=line.tax_rate,
+            tax_amount=line.tax_amount,
+            line_total=line.line_total,
+        )
+        for line in pricing.lines
+    ]
+
+    return InvoicePreviewResponse(
+        subscription_id=sub.id,
+        subscription_number=sub.number,
+        period_start=period_start,
+        period_end=period_end,
+        invoice_date=invoice_date,
+        due_date=due_date,
+        subtotal=pricing.subtotal,
+        discount_total=pricing.discount_total,
+        applied_discount_id=pricing.applied_discount.id if pricing.applied_discount else None,
+        applied_discount_name=pricing.applied_discount.name if pricing.applied_discount else None,
+        tax_total=pricing.tax_total,
+        total=pricing.total,
+        lines=preview_lines,
+    )
