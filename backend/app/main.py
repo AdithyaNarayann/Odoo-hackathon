@@ -26,6 +26,7 @@ from app.routers import (
     products,
     quotation_templates,
     reports,
+    search,
     staff,
     subscriptions,
     system,
@@ -96,6 +97,7 @@ app.include_router(billing.router)
 app.include_router(invoices.router)
 app.include_router(payments.router)
 app.include_router(reports.router)
+app.include_router(search.router)
 app.include_router(system.router)
 
 
