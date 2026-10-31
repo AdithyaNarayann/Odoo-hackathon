@@ -1,0 +1,46 @@
+import os
+from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    APP_NAME: str = "Brightloop Subscription Management System"
+    APP_ENV: str = "development"
+    APP_TIMEZONE: str = "Asia/Kolkata"
+
+    SECRET_KEY: str = "dev-insecure-secret-key-brightloop-subscription-32bytes"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 480  # 8 hours
+    RESET_TOKEN_EXPIRE_MINUTES: int = 30  # 30 minutes
+
+    DATABASE_URL: str = "sqlite:///./brightloop.db"
+    FRONTEND_URL: str = "http://localhost:3000"
+
+    # Company Details for Invoices & Config
+    COMPANY_NAME: str = "Brightloop Technologies Pvt Ltd"
+    COMPANY_ADDRESS: str = "123 Innovation Way, Tech Park, Bangalore, KA, India"
+    COMPANY_TAX_ID: str = "GSTIN29ABCDE1234F1Z5"
+    COMPANY_EMAIL: str = "billing@brightloop.io"
+    COMPANY_PHONE: str = "+91 80 1234 5678"
+
+    # Email Service
+    EMAIL_BACKEND: str = "console"  # "smtp" or "console"
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "noreply@brightloop.io"
+    SMTP_TLS: bool = True
+
+    # Admin Bootstrap
+    ADMIN_EMAIL: Optional[str] = None
+    ADMIN_PASSWORD: Optional[str] = None
+
+
+settings = Settings()
