@@ -15,6 +15,25 @@ from app.models.user import User
 logger = logging.getLogger(__name__)
 
 
+def bootstrap_admin(db: Session) -> Optional[User]:
+    """Bootstrap admin account from settings if not present."""
+    admin_email = getattr(settings, "ADMIN_EMAIL", "admin@brightloop.com")
+    admin_password = getattr(settings, "ADMIN_PASSWORD", "Admin@1234")
+    admin_user = db.query(User).filter(User.email == admin_email.lower()).first()
+    if not admin_user:
+        admin_user = User(
+            email=admin_email.lower(),
+            full_name="System Administrator",
+            hashed_password=hash_password(admin_password),
+            role="admin",
+            is_active=True,
+        )
+        db.add(admin_user)
+        db.commit()
+        db.refresh(admin_user)
+    return admin_user
+
+
 def ensure_default_accounts(db: Session) -> None:
     """Ensure the standard default accounts and sample data for Demo Traders exist.
 
