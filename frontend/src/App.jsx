@@ -16,6 +16,7 @@ import BillingRunPage from './pages/billing/BillingRunPage';
 import InvoicesListPage from './pages/invoices/InvoicesListPage';
 import InvoiceDetailPage from './pages/invoices/InvoiceDetailPage';
 import InvoicePrintPage from './pages/invoices/InvoicePrintPage';
+import PaymentsListPage from './pages/payments/PaymentsListPage';
 import ProductsPage from './pages/catalog/ProductsPage';
 import PlansPage from './pages/catalog/PlansPage';
 import TemplatesPage from './pages/catalog/TemplatesPage';
@@ -82,7 +83,7 @@ export default function App() {
         <Route path="/invoices" element={<InvoicesListPage />} />
         <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
         <Route path="/invoices/:id/print" element={<InvoicePrintPage />} />
-        <Route path="/payments" element={<PagePlaceholder title="Payments" />} />
+        <Route path="/payments" element={<PaymentsListPage />} />
         <Route path="/discounts" element={<DiscountsPage />} />
         <Route path="/reports" element={<PagePlaceholder title="Reports" />} />
         <Route path="/settings" element={<SettingsPage />} />
