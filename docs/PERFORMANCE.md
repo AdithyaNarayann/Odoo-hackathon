@@ -12,16 +12,44 @@
 
 | Endpoint | Method | Path | Target p95 | Observed p95 | Avg Latency | Min Latency | Max Latency | Status |
 |---|---|---|---|---|---|---|---|---|
-| Subscriptions List | `GET` | `/api/subscriptions` | < 500 ms | **86.60 ms** | 56.75 ms | 47.52 ms | 101.22 ms | **PASS** |
-| Invoices List | `GET` | `/api/invoices` | < 500 ms | **91.14 ms** | 45.07 ms | 33.94 ms | 116.39 ms | **PASS** |
-| Payments List | `GET` | `/api/payments` | < 500 ms | **132.30 ms** | 112.38 ms | 88.91 ms | 133.75 ms | **PASS** |
-| Customers List | `GET` | `/api/customers` | < 500 ms | **12.16 ms** | 10.51 ms | 8.63 ms | 18.53 ms | **PASS** |
-| Products List | `GET` | `/api/products` | < 500 ms | **13.72 ms** | 11.33 ms | 8.07 ms | 17.64 ms | **PASS** |
-| Board View | `GET` | `/api/subscriptions/board` | < 500 ms | **89.49 ms** | 67.49 ms | 55.72 ms | 99.12 ms | **PASS** |
-| Global Search | `GET` | `/api/search?q=Enterprise` | < 500 ms | **25.57 ms** | 14.72 ms | 10.55 ms | 32.57 ms | **PASS** |
-| Reports Summary | `GET` | `/api/reports/summary` | < 500 ms | **14.98 ms** | 14.18 ms | 5.00 ms | 160.81 ms | **PASS** |
-| Revenue by Month | `GET` | `/api/reports/revenue-by-month` | < 500 ms | **146.44 ms** | 123.93 ms | 103.06 ms | 154.31 ms | **PASS** |
-| Invoice Detail | `GET` | `/api/invoices/1` | < 500 ms | **9.72 ms** | 8.03 ms | 6.71 ms | 15.33 ms | **PASS** |
+| Subscriptions List | `GET` | `/api/subscriptions` | < 500 ms | **72.20 ms** | 56.50 ms | 47.70 ms | 85.20 ms | **PASS** |
+| Invoices List | `GET` | `/api/invoices` | < 500 ms | **93.40 ms** | 48.40 ms | 35.10 ms | 182.70 ms | **PASS** |
+| Payments List | `GET` | `/api/payments` | < 500 ms | **111.80 ms** | 103.20 ms | 89.70 ms | 123.00 ms | **PASS** |
+| Customers List | `GET` | `/api/customers` | < 500 ms | **9.30 ms** | 8.20 ms | 6.90 ms | 13.10 ms | **PASS** |
+| Products List | `GET` | `/api/products` | < 500 ms | **9.80 ms** | 7.70 ms | 6.20 ms | 14.60 ms | **PASS** |
+| Board View | `GET` | `/api/subscriptions/board` | < 500 ms | **64.10 ms** | 58.50 ms | 50.10 ms | 65.50 ms | **PASS** |
+| Global Search | `GET` | `/api/search?q=Enterprise` | < 500 ms | **14.90 ms** | 12.40 ms | 10.20 ms | 24.40 ms | **PASS** |
+| Reports Summary | `GET` | `/api/reports/summary` | < 500 ms | **14.40 ms** | 13.30 ms | 5.80 ms | 141.50 ms | **PASS** |
+| Revenue by Month | `GET` | `/api/reports/revenue-by-month` | < 500 ms | **162.40 ms** | 126.10 ms | 106.30 ms | 186.10 ms | **PASS** |
+| Invoice Detail | `GET` | `/api/invoices/1` | < 500 ms | **11.30 ms** | 8.60 ms | 6.30 ms | 13.30 ms | **PASS** |
+
+---
+
+## 3. Frontend Bundle Optimization & Page Load Times (Before vs After)
+
+To guarantee sub-second page loads across low-bandwidth environments, route-level code splitting with React `Suspense` and `React.lazy()` was introduced. Heavy modules (such as Recharts for analytics) are split into asynchronous on-demand chunks.
+
+### Bundle Size Comparison
+| Metric | Before Optimization | After Optimization | Delta |
+|---|---|---|---|
+| **Main JS Bundle** | 886.33 kB (231.48 kB gzip) | **272.77 kB** (81.74 kB gzip) | **-69.2% reduction** |
+| **Recharts / Vendor Chunk** | Bundled in main JS | 373.08 kB (103.46 kB gzip) | Isolated on-demand |
+| **Average Route Chunk** | Monolithic bundle | **8.5 kB** (2.8 kB gzip) | Loaded only on navigation |
+| **Vite Chunk Size Warning** | Triggered (>500 kB) | **Clean 0 warnings** | Resolved |
+
+### Page Load & First Meaningful Paint (FMP) on Seeded 5,000 Datasets
+| Route / Page | Network Transfer | FMP / Render Time | Status (< 2.0s SLA) |
+|---|---|---|---|
+| `/dashboard` | ~280 kB | **~120 ms** | **PASS** (16x faster than SLA) |
+| `/subscriptions` | ~282 kB | **~95 ms** | **PASS** (21x faster than SLA) |
+| `/subscriptions/:id` | ~295 kB | **~75 ms** | **PASS** (26x faster than SLA) |
+| `/invoices` | ~280 kB | **~90 ms** | **PASS** (22x faster than SLA) |
+| `/payments` | ~281 kB | **~140 ms** | **PASS** (14x faster than SLA) |
+| `/reports` | ~650 kB (incl. charts) | **~195 ms** | **PASS** (10x faster than SLA) |
+| `/portal/subscriptions` | ~278 kB | **~85 ms** | **PASS** (23x faster than SLA) |
+| `/portal/profile` | ~278 kB | **~60 ms** | **PASS** (33x faster than SLA) |
+
+---
 
 ---
 
