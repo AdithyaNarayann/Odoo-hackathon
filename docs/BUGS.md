@@ -14,4 +14,6 @@ This document logs every bug identified, root cause, fix, and associated git com
 | BUG-008 | Customer role was locked out of `/subscriptions` and `/invoices` routes. | Route definitions restricted `/subscriptions` to `admin` and `staff` only. | Opened shared routes to `customer` with role-aware component routing (`CustomerSubscriptionsPage`). | `f31ee1e` |
 | BUG-009 | Quick login shortcut buttons on login page used wrong demo emails and passwords. | Hardcoded legacy credentials (`BrightLoop2026!`). | Updated buttons with active credentials (`admin@brightloop.com` / `Admin@1234`, etc.). | `f31ee1e` |
 | BUG-010 | Missing top-level root error boundary and missing 404 page. | No catch-all boundary around App and no dedicated 404 view. | Added `ErrorBoundary` at root and created neo-brutal `NotFoundPage`. | `f31ee1e` |
+| BUG-011 | Topbar component crashed with `ReferenceError: useMemo is not defined` on all authenticated views. | Missing `useMemo` in React import list in `Topbar.jsx`. | Added `useMemo` to React imports in `frontend/src/components/layout/Topbar.jsx`. | `7a7247d` |
+| BUG-012 | Billing Run view crashed with `ReferenceError: formatDate is not defined`. | `formatDate` helper was referenced in template but omitted from `utils/format` import. | Added `formatDate` to imports in `frontend/src/pages/billing/BillingRunPage.jsx`. | `7a7247d` |
 
