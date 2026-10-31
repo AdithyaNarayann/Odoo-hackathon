@@ -14,6 +14,7 @@ def check_password_rules(password: str) -> List[str]:
     """
     Validates password according to requirements:
     - More than 8 characters (length >= 9)
+    - At most 72 bytes (bcrypt maximum limit)
     - At least one uppercase letter
     - At least one lowercase letter
     - At least one special (non-alphanumeric) character
@@ -22,6 +23,8 @@ def check_password_rules(password: str) -> List[str]:
     failures = []
     if len(password) <= 8:
         failures.append("Password must be more than 8 characters long (at least 9 characters).")
+    if len(password.encode("utf-8")) > 72:
+        failures.append("Password must not exceed 72 bytes.")
     if not any(c.isupper() for c in password):
         failures.append("Password must contain at least one uppercase letter.")
     if not any(c.islower() for c in password):
@@ -45,14 +48,23 @@ def enforce_password_policy(password: str) -> None:
 
 def hash_password(password: str) -> str:
     """Hash password directly using bcrypt."""
+    pw_bytes = password.encode("utf-8")
+    if len(pw_bytes) > 72:
+        raise UnprocessableEntityException(
+            detail="Password must not exceed 72 bytes.",
+            code="PASSWORD_TOO_LONG",
+        )
     salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+    return bcrypt.hashpw(pw_bytes, salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify password directly using bcrypt."""
     try:
-        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+        pw_bytes = plain_password.encode("utf-8")
+        if len(pw_bytes) > 72:
+            return False
+        return bcrypt.checkpw(pw_bytes, hashed_password.encode("utf-8"))
     except Exception:
         return False
 

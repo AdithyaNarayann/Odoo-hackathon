@@ -236,6 +236,59 @@ def list_invoices(
     )
 
 
+@router.post("/bulk-action", response_model=BulkInvoiceActionResponse, summary="Bulk confirm or send invoices (up to 500)")
+def bulk_invoice_action(
+    payload: BulkInvoiceActionRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(require_roles("admin", "staff")),
+    db: Session = Depends(get_db),
+):
+    if len(payload.invoice_ids) > 500:
+        raise BadRequestException(detail="Bulk action limit is 500 invoices per request.", code="LIMIT_EXCEEDED")
+
+    results: List[BulkInvoiceActionResult] = []
+    succeeded = 0
+    failed = 0
+
+    for inv_id in payload.invoice_ids:
+        inv = db.query(Invoice).filter(Invoice.id == inv_id).first()
+        if not inv:
+            results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error="Invoice not found"))
+            failed += 1
+            continue
+
+        if payload.action == "confirm":
+            if inv.status != "draft":
+                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error=f"Status is {inv.status}, not draft"))
+                failed += 1
+            else:
+                inv.status = "confirmed"
+                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=True))
+                succeeded += 1
+
+        elif payload.action == "send":
+            if inv.status not in ("confirmed", "paid"):
+                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error=f"Status is {inv.status}, must be confirmed/paid"))
+                failed += 1
+            else:
+                send_invoice_email(inv, background_tasks=background_tasks)
+                inv.sent_at = datetime.now(timezone.utc)
+                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=True))
+                succeeded += 1
+        else:
+            results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error=f"Unknown action {payload.action}"))
+            failed += 1
+
+    db.commit()
+
+    return BulkInvoiceActionResponse(
+        total_processed=len(payload.invoice_ids),
+        succeeded=succeeded,
+        failed=failed,
+        results=results,
+    )
+
+
 @router.get("/{id}", response_model=InvoiceResponse, summary="Get invoice details")
 def get_invoice(
     id: int,
@@ -350,55 +403,3 @@ def print_invoice(
         "invoice": invoice_data,
     }
 
-
-@router.post("/bulk-action", response_model=BulkInvoiceActionResponse, summary="Bulk confirm or send invoices (up to 500)")
-def bulk_invoice_action(
-    payload: BulkInvoiceActionRequest,
-    background_tasks: BackgroundTasks,
-    current_user: User = Depends(require_roles("admin", "staff")),
-    db: Session = Depends(get_db),
-):
-    if len(payload.invoice_ids) > 500:
-        raise BadRequestException(detail="Bulk action limit is 500 invoices per request.", code="LIMIT_EXCEEDED")
-
-    results: List[BulkInvoiceActionResult] = []
-    succeeded = 0
-    failed = 0
-
-    for inv_id in payload.invoice_ids:
-        inv = db.query(Invoice).filter(Invoice.id == inv_id).first()
-        if not inv:
-            results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error="Invoice not found"))
-            failed += 1
-            continue
-
-        if payload.action == "confirm":
-            if inv.status != "draft":
-                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error=f"Status is {inv.status}, not draft"))
-                failed += 1
-            else:
-                inv.status = "confirmed"
-                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=True))
-                succeeded += 1
-
-        elif payload.action == "send":
-            if inv.status not in ("confirmed", "paid"):
-                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error=f"Status is {inv.status}, must be confirmed/paid"))
-                failed += 1
-            else:
-                send_invoice_email(inv, background_tasks=background_tasks)
-                inv.sent_at = datetime.now(timezone.utc)
-                results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=True))
-                succeeded += 1
-        else:
-            results.append(BulkInvoiceActionResult(invoice_id=inv_id, success=False, error=f"Unknown action {payload.action}"))
-            failed += 1
-
-    db.commit()
-
-    return BulkInvoiceActionResponse(
-        total_processed=len(payload.invoice_ids),
-        succeeded=succeeded,
-        failed=failed,
-        results=results,
-    )
