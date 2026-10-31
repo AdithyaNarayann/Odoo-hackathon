@@ -10,6 +10,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import CustomersListPage from './pages/customers/CustomersListPage';
 import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 import SubscriptionsListPage from './pages/subscriptions/SubscriptionsListPage';
+import SubscriptionFormPage from './pages/subscriptions/SubscriptionFormPage';
 import ProductsPage from './pages/catalog/ProductsPage';
 import PlansPage from './pages/catalog/PlansPage';
 import TemplatesPage from './pages/catalog/TemplatesPage';
@@ -66,6 +67,8 @@ export default function App() {
         <Route path="/customers" element={<CustomersListPage />} />
         <Route path="/customers/:id" element={<CustomerDetailPage />} />
         <Route path="/subscriptions" element={<SubscriptionsListPage />} />
+        <Route path="/subscriptions/new" element={<SubscriptionFormPage />} />
+        <Route path="/subscriptions/:id/edit" element={<SubscriptionFormPage />} />
         <Route path="/subscriptions/:id" element={<PagePlaceholder title="Subscription Details" />} />
         <Route path="/templates" element={<TemplatesPage />} />
         <Route path="/products" element={<ProductsPage />} />
