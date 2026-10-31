@@ -23,6 +23,7 @@ from app.routers import (
     products,
     quotation_templates,
     staff,
+    subscriptions,
     taxes,
 )
 from app.services.bootstrap import bootstrap_admin
@@ -80,6 +81,7 @@ app.include_router(plans.router)
 app.include_router(taxes.router)
 app.include_router(discounts.router)
 app.include_router(quotation_templates.router)
+app.include_router(subscriptions.router)
 
 
 @app.get("/api/health")
