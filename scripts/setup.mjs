@@ -118,6 +118,11 @@ if (shouldReset) {
 }
 run(pythonBin, seedArgs, { env: pyEnv });
 
+// Ensure standard demo accounts and sample subscriptions for Demo Traders
+console.log('\n[setup] Ensuring default demo accounts (admin, staff, customer)...');
+run(pythonBin, ['-c', 'from app.core.database import SessionLocal; from app.services.bootstrap import ensure_default_accounts; db = SessionLocal(); ensure_default_accounts(db); db.close()'], { env: pyEnv });
+
+
 console.log('\n======================================================');
 console.log('   [SUCCESS] Brightloop Setup Completed Successfully! ');
 console.log('======================================================');

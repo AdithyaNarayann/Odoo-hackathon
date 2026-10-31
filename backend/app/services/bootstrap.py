@@ -268,7 +268,12 @@ def ensure_default_accounts(db: Session) -> None:
         has_overdue_inv = any(i.status == "confirmed" and i.due_date < today and i.balance > 0 for i in existing_invoices)
 
         def create_demo_invoice(inv_status, inv_date, due_d, is_paid=False):
-            num = get_next_invoice_number(db, inv_date.year)
+            # Find a free period_start to respect UNIQUE(subscription_id, period_start)
+            candidate = inv_date
+            while db.query(Invoice).filter(Invoice.subscription_id == active_sub.id, Invoice.period_start == candidate).first():
+                candidate = candidate - datetime.timedelta(days=32)
+
+            num = get_next_invoice_number(db, candidate.year)
             subtotal = 176000
             tax = 31680
             total = subtotal + tax
@@ -288,9 +293,9 @@ def ensure_default_accounts(db: Session) -> None:
                 postal_code=demo_cust.postal_code,
                 country=demo_cust.country,
                 tax_id=demo_cust.tax_id,
-                period_start=inv_date,
-                period_end=inv_date + datetime.timedelta(days=30),
-                invoice_date=inv_date,
+                period_start=candidate,
+                period_end=candidate + datetime.timedelta(days=30),
+                invoice_date=candidate,
                 due_date=due_d,
                 status=inv_status,
                 subtotal=subtotal,

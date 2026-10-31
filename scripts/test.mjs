@@ -26,10 +26,12 @@ console.log('======================================================\n');
 function run(cmd, args, options = {}) {
   const displayCmd = `${cmd} ${args.join(' ')}`;
   console.log(`[test] > ${displayCmd}`);
+  const isCmdBatch = isWin && (cmd.endsWith('.cmd') || cmd.endsWith('.bat'));
+  const useShell = isCmdBatch;
   const result = spawnSync(cmd, args, {
     stdio: 'inherit',
     cwd: ROOT_DIR,
-    shell: isWin,
+    shell: useShell,
     ...options,
   });
 

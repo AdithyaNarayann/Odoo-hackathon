@@ -591,10 +591,13 @@ def main():
     parser.add_argument("size_pos", nargs="?", type=int, default=None, help="Number of subscriptions to seed (default 5000)")
     parser.add_argument("--size", type=int, default=5000, help="Number of subscriptions to seed (default 5000)")
     parser.add_argument("--no-reset", action="store_true", help="Do not wipe existing data before seeding")
+    parser.add_argument("--reset", action="store_true", help="Wipe existing data before seeding")
     args = parser.parse_args()
 
     target_size = args.size_pos if args.size_pos is not None else args.size
-    reset_db = not args.no_reset
+    reset_db = True
+    if args.no_reset:
+        reset_db = False
 
     run_seed(size=target_size, reset=reset_db)
 
