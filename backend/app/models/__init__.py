@@ -19,6 +19,7 @@ from app.models.sequence import (
 )
 from app.models.subscription import Subscription, SubscriptionLine, SubscriptionEvent
 from app.models.invoice import Invoice, InvoiceLine
+from app.models.payment import Payment
 
 __all__ = [
     "Base",
@@ -43,4 +44,5 @@ __all__ = [
     "SubscriptionEvent",
     "Invoice",
     "InvoiceLine",
+    "Payment",
 ]

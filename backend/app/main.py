@@ -20,6 +20,7 @@ from app.routers import (
     customers,
     discounts,
     invoices,
+    payments,
     plans,
     portal,
     products,
@@ -92,6 +93,7 @@ app.include_router(quotation_templates.router)
 app.include_router(subscriptions.router)
 app.include_router(billing.router)
 app.include_router(invoices.router)
+app.include_router(payments.router)
 app.include_router(system.router)
 
 

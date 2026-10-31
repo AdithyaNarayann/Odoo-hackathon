@@ -2,6 +2,8 @@ from datetime import date, datetime
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.payment import PaymentResponse
+
 
 class InvoiceLinePreviewResponse(BaseModel):
     product_id: Optional[int] = None
@@ -84,6 +86,7 @@ class InvoiceResponse(BaseModel):
     days_overdue: int
 
     lines: List[InvoiceLineResponse] = []
+    payments: List[PaymentResponse] = []
     created_at: datetime
     updated_at: datetime
 

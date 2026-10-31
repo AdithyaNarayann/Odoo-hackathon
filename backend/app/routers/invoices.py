@@ -20,6 +20,7 @@ from app.schemas.invoice import (
     InvoiceLineResponse,
     InvoiceResponse,
 )
+from app.schemas.payment import PaymentResponse
 from app.services.email import send_email_sync
 from app.services.pricing import release_discount_usage
 
@@ -69,6 +70,23 @@ def build_invoice_response(inv: Invoice, today: Optional[date] = None) -> Invoic
         for l in inv.lines
     ]
 
+    payments_resp = [
+        PaymentResponse(
+            id=p.id,
+            invoice_id=p.invoice_id,
+            invoice_number=inv.number,
+            customer_id=inv.customer_id,
+            customer_name=inv.customer_name,
+            method=p.method,
+            amount=p.amount,
+            payment_date=p.payment_date,
+            note=p.note,
+            recorded_by=p.recorded_by,
+            created_at=p.created_at,
+        )
+        for p in (inv.payments or [])
+    ]
+
     return InvoiceResponse(
         id=inv.id,
         number=inv.number,
@@ -101,6 +119,7 @@ def build_invoice_response(inv: Invoice, today: Optional[date] = None) -> Invoic
         is_overdue=is_overdue,
         days_overdue=days_overdue,
         lines=lines_resp,
+        payments=payments_resp,
         created_at=inv.created_at,
         updated_at=inv.updated_at,
     )

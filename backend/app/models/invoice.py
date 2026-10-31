@@ -63,6 +63,7 @@ class Invoice(Base):
     customer = relationship("Customer")
     applied_discount = relationship("DiscountRule")
     lines = relationship("InvoiceLine", back_populates="invoice", cascade="all, delete-orphan", order_by="InvoiceLine.id.asc()")
+    payments = relationship("Payment", back_populates="invoice", cascade="all, delete-orphan", order_by="Payment.id.asc()")
 
 
 class InvoiceLine(Base):
