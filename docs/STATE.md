@@ -198,6 +198,96 @@
 - Root `package.json` with `concurrently` executing backend (`python -m uvicorn app.main:app --app-dir backend --reload --port 8000`) and frontend (`npm --prefix frontend run dev`) concurrently.
 - Compatible with Windows, Linux, and macOS across PowerShell, CMD, and Bash.
 
+### Milestone 21: Subscriptions List & 5-Column Pipeline Board (F1)
+- `SubscriptionsListPage` (`/subscriptions`):
+  * DataTable with columns: Subscription Number, Customer, Plan, Amount per period, Status Badge, Next Billing, Expiry, and row actions.
+  * URL-synced filters for status, plan, customer query, and quick filter "Expiring in 30 days" (`expiring_in_30_days=true`).
+  * View toggle switches seamlessly between table and a 5-column Kanban pipeline board (`Draft`, `Quotation`, `Confirmed`, `Active`, `Closed`).
+  * Each board column features column header badge with count, cards showing customer, plan, and recurring amount, and "View all N" link syncing directly to filtered table view. Click opens subscription detail.
+  * Strict state-machine safety: transitions are executed through detail action buttons rather than drag-and-drop to preserve legal validation rules.
+
+### Milestone 22: Subscription Contract Builder & Line Item Editor (F2)
+- `SubscriptionFormPage` (`/subscriptions/new`, `/subscriptions/:id/edit`):
+  * Custom contract and template-based creation modes (`POST /api/subscriptions/create-from-template`).
+  * Customer selector, plan picker, start date, expiry date, payment terms, and notes.
+  * Interactive line item editor with live variant selector, effective unit price snapshot, quantity validation enforcing `plan.min_quantity`, current tax rule resolution, and line amount computation.
+  * Real-time running totals calculation (subtotal, taxes, recurring subtotal) matching backend pricing pipeline.
+  * Inline validation errors mapped cleanly to corresponding fields.
+
+### Milestone 23: Subscription Detail, Status Stepper & Legal Actions (F3)
+- `SubscriptionDetailPage` (`/subscriptions/:id`):
+  * Header card with subscription number, status badge, pause indicator, customer link, and plan terms.
+  * Status Stepper (`Draft` → `Quotation` → `Confirmed` → `Active` → `Closed`) tracking contract progression.
+  * Dynamic action buttons strictly scoped to user role, current state, and plan lifecycle flags:
+    - Draft → Quotation (`Send Quotation`)
+    - Quotation → Draft (`Revise`)
+    - Quotation → Confirmed (`Confirm Contract`)
+    - Confirmed → Active (`Activate Now` if start date reached)
+    - Active → Paused / Paused → Active (`Pause` / `Resume` based on `plan.pausable`)
+    - Active → Closed (`Close Contract` based on `plan.closable`)
+    - Renewal Modal (1 to 36 periods based on `plan.renewable`)
+    - Add-on Lines management: toggle existing add-ons on/off via `Toggle`, or add new add-on lines to an Active contract without proration.
+  * Dry-Run Next Invoice Preview panel (`GET /api/subscriptions/:id/preview-next-invoice`) showing upcoming invoice lines, discounts applied, and taxes.
+  * Audit activity timeline logging every state transition, pause/resume, and line modification.
+
+### Milestone 24: Advance Billing Run & Dry-Run Simulator (F4)
+- `BillingRunPage` (`/billing`):
+  * As-of date selector for advance billing simulations.
+  * Dry-Run Preview (`POST /api/billing/run?dry_run=true`) returning eligible subscriptions count, invoice lines, and estimated total in integer paise.
+  * Confirmation modal and neo-brutalist animated `ProgressBar` during execution.
+  * Results panel detailing invoices created, skipped periods, catch-up batches, and idempotency guarantees.
+
+### Milestone 25: Invoices Management, Bulk Operations & Printable Invoices (F5)
+- `InvoicesListPage` (`/invoices`):
+  * Dynamic status tabs (`All`, `Draft`, `Confirmed`, `Paid`, `Overdue`, `Outstanding`) with real-time counts.
+  * Row selection with multi-invoice bulk action modal (`Confirm All`, `Send All`, `Cancel All`) returning individual row status results.
+- `InvoiceDetailPage` (`/invoices/:id`):
+  * Invoice summary, payment status, customer billing information, line items breakdown, taxes, and applied discounts.
+  * Payment ledger displaying all partial/full payments recorded against the invoice.
+  * Record payment modal with automated balance prefill and atomic conflict protection.
+- `InvoicePrintPage` (`/invoices/:id/print`, `/portal/invoices/:id/print`):
+  * Clean white print stylesheet (`@media print`) stripping navigation shell, borders, and shadows.
+  * Formal business layout with company metadata, customer billing details, itemized tax breakdowns, and payment history.
+  * Triggered via button or automatic print dialog.
+
+### Milestone 26: Payments Ledger & Atomic Reconciliation (F6)
+- `PaymentsListPage` (`/payments`):
+  * Financial reconciliation table displaying payment date, invoice reference, customer, payment method badge (`cash`, `card`, `upi`, `bank_transfer`, `cheque`), and amount.
+  * Summary cards for Total Paid vs Outstanding Balance.
+  * Date range, method, and customer search filters.
+  * Record Payment modal allowing staff and admin to record payments against any confirmed invoice with live balance updates.
+
+### Milestone 27: Financial Reports & Overdue Reminders (F7)
+- `ReportsPage` (`/reports`):
+  * Period selector (`from`, `to`) and customer/plan filters.
+  * 6 KPI StatCards: Active Subscriptions, Normalized Monthly Recurring Revenue (MRR), Total Invoiced, Revenue Collected (with period comparison), Outstanding Invoices, and Expiring Subscriptions.
+  * Recharts stacked bar chart of historical revenue split into base subscription charges vs add-on products.
+  * Payments distribution breakdown by payment method.
+  * Tabbed table breakdown for Subscriptions by Status, Invoices by Status, and Overdue Invoices with per-row "Send Payment Reminder" quick action.
+
+### Milestone 28: Global Search & Real-Time Notification Bell (F8)
+- `Topbar` navigation integration:
+  * Global Search with `Ctrl+K` shortcut, 300 ms debounce, arrow key navigation (`ArrowDown`, `ArrowUp`, `Enter`, `Escape`), and tenant isolation.
+  * Grouped results popover (Customers, Subscriptions, Invoices) with direct routing.
+  * Notification Bell with live badge indicator for overdue invoices count.
+  * Dropdown displaying top 5 overdue invoices with customer name, days overdue, and amount due.
+
+### Milestone 29: Customer Self-Service Portal (F9)
+- `CustomerSubscriptionsPage` (`/portal/subscriptions`):
+  * Role-scoped view of active, quotation, confirmed, and closed subscriptions (omits draft contracts).
+  * Direct customer self-service actions: confirm quotation, pause/resume subscription (if plan allows), close subscription (if plan allows), and toggle add-on services.
+- `CustomerProfilePage` (`/portal/profile`):
+  * Read/write customer company and billing details via `/api/portal/me`.
+  * Security section with Change Password form enforcing strict 5-rule policy with live visual checklist.
+- Reuses `InvoicesListPage` and `InvoicePrintPage` with customer role scoping: only confirmed and paid invoices are displayed.
+
+### Milestone 30: Responsive Polish, Empty States & Resilient Error Boundary (F10)
+- Tablet navigation: sidebar transforms into an icon rail on medium screens (`md:w-16 lg:w-64`) with centered icons and tooltips.
+- Mobile navigation: responsive slide-out drawer with ink backdrop on mobile screens (`< 768px`).
+- Neo-brutalist empty states for zero-data conditions across all tables and feeds.
+- Pulsating skeleton loaders during async query execution.
+- Global `ErrorBoundary` catching uncaught render exceptions with reload and return home actions.
+
 ## How to Run
 ```bash
 # 1. Install root, backend, and frontend dependencies
@@ -223,4 +313,4 @@ npm run build:frontend
 ```
 
 ## What is Next
-- Part 5: Full subscriptions contract builder, Kanban drag-and-drop board, advance billing run trigger, invoice detail viewer with payment recorder, and search box / notification center.
+- All functional and architectural requirements in the specification are fully implemented, verified, and tested. Ready for final evaluation and production deployment.
