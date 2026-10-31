@@ -18,6 +18,8 @@ import InvoiceDetailPage from './pages/invoices/InvoiceDetailPage';
 import InvoicePrintPage from './pages/invoices/InvoicePrintPage';
 import PaymentsListPage from './pages/payments/PaymentsListPage';
 import ReportsPage from './pages/reports/ReportsPage';
+import CustomerSubscriptionsPage from './pages/portal/CustomerSubscriptionsPage';
+import CustomerProfilePage from './pages/portal/CustomerProfilePage';
 import ProductsPage from './pages/catalog/ProductsPage';
 import PlansPage from './pages/catalog/PlansPage';
 import TemplatesPage from './pages/catalog/TemplatesPage';
@@ -98,11 +100,11 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/portal/subscriptions" element={<PagePlaceholder title="My Subscriptions" />} />
+        <Route path="/portal/subscriptions" element={<CustomerSubscriptionsPage />} />
         <Route path="/portal/invoices" element={<InvoicesListPage />} />
         <Route path="/portal/invoices/:id" element={<InvoiceDetailPage />} />
         <Route path="/portal/invoices/:id/print" element={<InvoicePrintPage />} />
-        <Route path="/portal/profile" element={<SettingsPage />} />
+        <Route path="/portal/profile" element={<CustomerProfilePage />} />
       </Route>
 
       {/* Catch-all */}
