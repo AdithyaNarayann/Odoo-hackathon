@@ -8,3 +8,9 @@
 | DEC-004 | Catalog | Tax rules precedence: product > product_type > all | Standard tax priority hierarchy to allow specific overrides over generic rates |
 | DEC-005 | Pricing | Integer paise calculations with half-up rounding (`ROUND_HALF_UP`) applied once per line | Prevents cumulative floating point errors and adheres to INR paise convention |
 | DEC-006 | Customer Portal | Portal access restricted strictly to customer's linked customer record; queries return 404 for any unowned entity | Prevents ID enumeration and unauthorized data inspection |
+| DEC-007 | Auth | Login throttling persisted in database table `login_attempts` | Retains throttle integrity across server reboots without relying on in-memory counters |
+| DEC-008 | Auth | Admin bootstrap on startup checks for existing admin role before creating default admin | Idempotent startup logic that safely initializes admin if env credentials are provided |
+| DEC-009 | Catalog | Quotation templates editable by both Admin and Staff, whereas products/plans/taxes/discounts are Admin write-only | Staff need ability to draft quotations while core financial catalog parameters remain locked |
+| DEC-010 | Catalog | Discount rule status dynamically calculated on request using business calendar date and usage counts | Avoids cron/daemon synchronization lag and keeps rule statuses strictly accurate in real time |
+| DEC-011 | Catalog | Deactivated discount rules compute status as "expired" | Prevents applying inactive discounts while preserving audit trails |
+| DEC-012 | Auth | All outstanding reset tokens for user marked used upon successful password reset | Prevents token replay and closes open reset windows immediately |
