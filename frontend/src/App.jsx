@@ -12,6 +12,8 @@ import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 import ProductsPage from './pages/catalog/ProductsPage';
 import PlansPage from './pages/catalog/PlansPage';
 import TemplatesPage from './pages/catalog/TemplatesPage';
+import DiscountsPage from './pages/discounts/DiscountsPage';
+import SettingsPage from './pages/settings/SettingsPage';
 import { useAuth } from './context/AuthContext';
 
 function IndexRedirect() {
@@ -69,9 +71,9 @@ export default function App() {
         <Route path="/plans" element={<PlansPage />} />
         <Route path="/invoices" element={<PagePlaceholder title="Invoices" />} />
         <Route path="/payments" element={<PagePlaceholder title="Payments" />} />
-        <Route path="/discounts" element={<PagePlaceholder title="Discounts" />} />
+        <Route path="/discounts" element={<DiscountsPage />} />
         <Route path="/reports" element={<PagePlaceholder title="Reports" />} />
-        <Route path="/settings" element={<PagePlaceholder title="Settings" />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
       {/* Customer Portal Routes */}
@@ -84,7 +86,7 @@ export default function App() {
       >
         <Route path="/portal/subscriptions" element={<PagePlaceholder title="My Subscriptions" />} />
         <Route path="/portal/invoices" element={<PagePlaceholder title="My Invoices" />} />
-        <Route path="/portal/profile" element={<PagePlaceholder title="My Profile" />} />
+        <Route path="/portal/profile" element={<SettingsPage />} />
       </Route>
 
       {/* Catch-all */}
