@@ -32,7 +32,7 @@ from app.routers import (
     system,
     taxes,
 )
-from app.services.bootstrap import bootstrap_admin
+from app.services.bootstrap import ensure_default_accounts
 from app.services.scheduler import start_scheduler, stop_scheduler
 
 logger = logging.getLogger(__name__)
@@ -42,16 +42,32 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup actions
     logger.info("Starting up %s", settings.APP_NAME)
-    # Admin bootstrap
-    db = SessionLocal()
-    try:
-        bootstrap_admin(db)
-    except Exception as exc:
-        logger.error("Failed to bootstrap admin: %s", exc, exc_info=True)
-    finally:
-        db.close()
 
-    # Start in-process scheduler if enabled
+    # 1. Apply pending Alembic migrations in development
+    if settings.APP_ENV != "production":
+        try:
+            import os
+            from alembic import command
+            from alembic.config import Config
+            alembic_ini = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "alembic.ini"))
+            if os.path.exists(alembic_ini):
+                logger.info("Verifying and applying pending database migrations...")
+                cfg = Config(alembic_ini)
+                command.upgrade(cfg, "head")
+        except Exception as exc:
+            logger.error("Database migration check failed on startup: %s", exc, exc_info=True)
+
+    # 2. Ensure default accounts & Demo Traders sample data
+    if settings.SEED_DEFAULT_ACCOUNTS and settings.APP_ENV != "production":
+        db = SessionLocal()
+        try:
+            ensure_default_accounts(db)
+        except Exception as exc:
+            logger.error("Failed to ensure default accounts: %s", exc, exc_info=True)
+        finally:
+            db.close()
+
+    # 3. Start in-process scheduler if enabled
     start_scheduler()
 
     yield

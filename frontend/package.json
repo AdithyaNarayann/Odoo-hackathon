@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.28.4",
+    "brightloop-subscription-system": "file:..",
     "clsx": "^2.1.0",
     "lucide-react": "^0.359.0",
     "react": "^18.2.0",

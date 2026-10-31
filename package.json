@@ -2,10 +2,15 @@
   "name": "brightloop-subscription-system",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"backend,frontend\" -c \"blue.bold,green.bold\" \"python -m uvicorn app.main:app --app-dir backend --reload --port 8000\" \"npm --prefix frontend run dev\"",
-    "dev:backend": "python -m uvicorn app.main:app --app-dir backend --reload --port 8000",
-    "dev:frontend": "npm --prefix frontend run dev",
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "db:reset": "node scripts/setup.mjs --reset",
+    "db:seed": "node scripts/setup.mjs",
+    "db:seed:full": "node scripts/setup.mjs --full",
+    "test": "node scripts/test.mjs",
+    "build": "npm --prefix frontend run build",
     "build:frontend": "npm --prefix frontend run build"
   },
   "devDependencies": {
